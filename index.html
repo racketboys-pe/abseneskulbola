@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SME-Bola SDN Ulujami 06 Pagi</title>
+    <title>SME-Bola SDN Ulujami 06 Pagi (Online)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,17 +23,8 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                            950: '#172554',
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa',
+                            500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a', 950: '#172554',
                         }
                     }
                 }
@@ -44,144 +35,87 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .hide { display: none !important; }
-        /* Active Nav Blue Theme */
         .active-nav { background-color: #1e40af; color: white; border-left: 4px solid #60a5fa; }
-        
-        /* Mobile Sidebar Transition */
         .mobile-hidden { transform: translateX(-100%); }
-        @media (min-width: 768px) {
-            .mobile-hidden { transform: translateX(0); }
-        }
-
-        /* Glass effect for login */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-        }
-
-        /* Custom Scrollbar */
+        @media (min-width: 768px) { .mobile-hidden { transform: translateX(0); } }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        /* Loading Overlay */
+        #loading-overlay { display: flex; }
+        .spinner { border: 4px solid rgba(0,0,0,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #3b82f6; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50 h-screen flex overflow-hidden">
 
-    <!-- LOGIN SCREEN OVERLAY -->
-    <!-- GANTI LINK GAMBAR BACKGROUND DI SINI (url dalam tanda kutip) -->
-    <div id="login-screen" class="fixed inset-0 z-50 bg-brand-900 flex items-center justify-center p-4" style="background-image: url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop'); background-size: cover; background-position: center;">
+    <!-- LOADING SCREEN -->
+    <div id="loading-overlay" class="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="spinner mb-4"></div>
+        <p class="text-brand-600 font-bold animate-pulse">Menghubungkan ke Database...</p>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-brand-900 flex items-center justify-center p-4 hide" style="background-image: url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop'); background-size: cover; background-position: center;">
         <div class="absolute inset-0 bg-brand-900 bg-opacity-80"></div>
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl shadow-2xl relative z-10 animate-fade-in">
             <div class="text-center mb-8">
-                <!-- LOGO CUSTOM -->
-                <!-- Ganti src="..." dengan URL logo sekolah Anda -->
                 <div class="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white flex items-center justify-center">
                      <img src="https://github.com/racketboys-pe/abseneskulbola/blob/main/LOGO%20ULUJAMI%20FOOTBALL.png?raw=true" alt="Logo Tim" class="w-full h-full object-cover">
                 </div>
-                
-                <h1 class="text-2xl font-bold text-gray-800">SME-BOLA</h1>
+                <h1 class="text-2xl font-bold text-gray-800">SME-BOLA ONLINE</h1>
                 <p class="text-brand-600 font-semibold">SDN Ulujami 06 Pagi</p>
-                <p class="text-xs text-gray-500 mt-1">Sistem Manajemen Ekstrakurikuler</p>
+                <p class="text-xs text-gray-500 mt-1">Sistem Manajemen Ekstrakurikuler Realtime</p>
             </div>
 
-            <form onsubmit="handleLogin(event)" class="space-y-4">
+            <form onsubmit="window.handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Pengguna</label>
-                    <select id="login-role" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition bg-white" onchange="toggleLoginHint()">
+                    <select id="login-role" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-brand-500 bg-white">
                         <option value="admin">Koordinator (Guru/Kelas)</option>
                         <option value="umum">User Umum (Wali Murid)</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="login-pass" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition" placeholder="Masukkan Password">
+                    <input type="password" id="login-pass" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-brand-500" placeholder="Masukkan Password">
                 </div>
-                
                 <div id="login-error" class="text-red-500 text-sm text-center hidden bg-red-50 p-2 rounded border border-red-200">
                     <i class="fa-solid fa-circle-exclamation mr-1"></i> Password salah!
                 </div>
-
-                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-lg shadow-lg transition transform active:scale-95">
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-lg shadow-lg transition active:scale-95">
                     MASUK APLIKASI
                 </button>
             </form>
-            <div class="mt-6 text-center text-xs text-gray-400">
-                &copy; 2026 Oryza Sativa N
-            </div>
+            <div class="mt-6 text-center text-xs text-gray-400">&copy; 2026 Oryza Sativa N</div>
         </div>
     </div>
 
-    <!-- Sidebar Overlay for Mobile -->
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden glass-effect"></div>
-
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
+    <div id="sidebar-overlay" onclick="window.toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden glass-effect"></div>
     <aside class="fixed md:static inset-y-0 left-0 w-64 bg-brand-900 text-gray-300 flex flex-col shadow-2xl z-30 transition-transform duration-300 mobile-hidden" id="sidebar">
         <div class="h-16 flex items-center justify-center border-b border-brand-800 bg-brand-950 px-4">
-            <!-- FITUR 4: LOGO SIDEBAR CUSTOM -->
             <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-blue-400 mr-3 bg-white">
                 <img src="https://github.com/racketboys-pe/abseneskulbola/blob/main/LOGO%20ULUJAMI%20FOOTBALL.png?raw=true" alt="Logo" class="w-full h-full object-cover">
             </div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-wider leading-none">SME-BOLA</h1>
-                <span class="text-[9px] text-blue-300 uppercase tracking-widest">SDN ULUJAMI 06</span>
+                <span class="text-[9px] text-blue-300 uppercase tracking-widest">ONLINE DB</span>
             </div>
         </div>
-        
         <nav class="flex-1 overflow-y-auto py-4">
             <ul class="space-y-1">
-                <!-- Menu Items with IDs for Role Management -->
-                <li id="menu-dashboard">
-                    <a href="#" onclick="showPage('dashboard')" id="nav-dashboard" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors active-nav">
-                        <i class="fa-solid fa-chart-pie w-6"></i>
-                        <span class="font-medium">Dashboard</span>
-                    </a>
-                </li>
-                <li id="menu-profiles">
-                    <a href="#" onclick="showPage('profiles')" id="nav-profiles" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors">
-                        <i class="fa-solid fa-id-card-clip w-6"></i>
-                        <span class="font-medium">Profil Pemain</span>
-                    </a>
-                </li>
-                <li id="menu-students">
-                    <a href="#" onclick="showPage('students')" id="nav-students" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors">
-                        <i class="fa-solid fa-users w-6"></i>
-                        <span class="font-medium">Data Pemain</span>
-                    </a>
-                </li>
-                <li id="menu-attendance">
-                    <a href="#" onclick="showPage('attendance')" id="nav-attendance" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors">
-                        <i class="fa-solid fa-calendar-check w-6"></i>
-                        <span class="font-medium">Absensi Harian</span>
-                    </a>
-                </li>
-                <li id="menu-report">
-                    <a href="#" onclick="showPage('report')" id="nav-report" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors">
-                        <i class="fa-solid fa-table w-6"></i>
-                        <span class="font-medium">Rekap & Laporan</span>
-                    </a>
-                </li>
-                <li id="menu-assessment">
-                    <a href="#" onclick="showPage('assessment')" id="nav-assessment" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors">
-                        <i class="fa-solid fa-clipboard-list w-6"></i>
-                        <span class="font-medium">Penilaian</span>
-                    </a>
-                </li>
-                <li class="pt-4 border-t border-brand-800 mt-2">
-                     <a href="#" onclick="showPage('guide')" id="nav-guide" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors">
-                        <i class="fa-solid fa-book w-6"></i>
-                        <span class="font-medium">Panduan</span>
-                    </a>
-                </li>
-                 <li>
-                     <a href="#" onclick="showPage('dev')" id="nav-dev" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors">
-                        <i class="fa-solid fa-code w-6"></i>
-                        <span class="font-medium">Pengembang</span>
-                    </a>
-                </li>
+                <li id="menu-dashboard"><a href="#" onclick="window.showPage('dashboard')" id="nav-dashboard" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors active-nav"><i class="fa-solid fa-chart-pie w-6"></i><span class="font-medium">Dashboard</span></a></li>
+                <li id="menu-profiles"><a href="#" onclick="window.showPage('profiles')" id="nav-profiles" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-id-card-clip w-6"></i><span class="font-medium">Profil Pemain</span></a></li>
+                <li id="menu-students"><a href="#" onclick="window.showPage('students')" id="nav-students" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-users w-6"></i><span class="font-medium">Data Pemain</span></a></li>
+                <li id="menu-attendance"><a href="#" onclick="window.showPage('attendance')" id="nav-attendance" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-calendar-check w-6"></i><span class="font-medium">Absensi Harian</span></a></li>
+                <li id="menu-report"><a href="#" onclick="window.showPage('report')" id="nav-report" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-table w-6"></i><span class="font-medium">Rekap & Laporan</span></a></li>
+                <li id="menu-assessment"><a href="#" onclick="window.showPage('assessment')" id="nav-assessment" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-clipboard-list w-6"></i><span class="font-medium">Penilaian</span></a></li>
             </ul>
         </nav>
-
         <div class="p-4 border-t border-brand-800 bg-brand-950">
             <div class="flex items-center mb-3">
                 <div class="w-8 h-8 rounded-full bg-brand-700 flex items-center justify-center mr-2">
@@ -189,31 +123,25 @@
                 </div>
                 <div>
                     <div class="text-xs font-bold text-white" id="user-role-display">Guest</div>
-                    <div class="text-[10px] text-brand-400">Online</div>
+                    <div class="text-[10px] text-green-400 flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1 animate-pulse"></span> Online</div>
                 </div>
             </div>
-            <button onclick="logout()" class="w-full flex items-center justify-center bg-red-900 hover:bg-red-800 text-white py-2 rounded text-xs transition mb-2">
+            <button onclick="window.logout()" class="w-full flex items-center justify-center bg-red-900 hover:bg-red-800 text-white py-2 rounded text-xs transition mb-2">
                 <i class="fa-solid fa-sign-out-alt mr-2"></i> Logout
             </button>
             <div class="flex gap-2 admin-only">
-                <button onclick="backupData()" class="flex-1 flex items-center justify-center bg-brand-700 hover:bg-brand-600 text-white py-2 rounded text-xs transition shadow-lg" title="Backup Database">
+                <button onclick="window.backupData()" class="flex-1 flex items-center justify-center bg-brand-700 hover:bg-brand-600 text-white py-2 rounded text-xs transition shadow-lg" title="Backup ke JSON Lokal">
                     <i class="fa-solid fa-download mr-1"></i> Backup
                 </button>
-                <!-- FITUR 3: RESTORE DB -->
-                <button onclick="document.getElementById('restore-file').click()" class="flex-1 flex items-center justify-center bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded text-xs transition shadow-lg" title="Restore Database">
-                    <i class="fa-solid fa-upload mr-1"></i> Restore
-                </button>
-                <input type="file" id="restore-file" class="hidden" accept=".json" onchange="restoreData(this)">
             </div>
         </div>
     </aside>
 
-    <!-- Main Content -->
+    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative w-full">
-        <!-- Header -->
         <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-6 z-10 border-b border-gray-200">
             <div class="flex items-center">
-                <button onclick="toggleSidebar()" class="text-brand-700 hover:text-brand-900 focus:outline-none md:hidden mr-4 p-2 rounded-md hover:bg-blue-50">
+                <button onclick="window.toggleSidebar()" class="text-brand-700 hover:text-brand-900 focus:outline-none md:hidden mr-4 p-2 rounded-md hover:bg-blue-50">
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
                 <h2 class="text-lg md:text-xl font-bold text-gray-800 truncate" id="page-title">Dashboard</h2>
@@ -223,17 +151,14 @@
             </div>
         </header>
 
-        <!-- Content Area -->
         <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 md:p-6 scroll-smooth" id="main-container">
             
-            <!-- PAGE: DASHBOARD -->
+            <!-- DASHBOARD -->
             <div id="page-dashboard" class="page-section animate-fade-in">
                 <div class="bg-blue-600 rounded-xl p-6 mb-6 text-white shadow-lg bg-gradient-to-r from-blue-700 to-blue-500">
-                    <h2 class="text-2xl font-bold mb-1">Selamat Datang, Koordinator!</h2>
-                    <p class="opacity-90">Sistem Manajemen Ekstrakurikuler Sepakbola SDN Ulujami 06 Pagi.</p>
+                    <h2 class="text-2xl font-bold mb-1">Selamat Datang!</h2>
+                    <p class="opacity-90">Data tersinkronisasi secara realtime dengan database Cloud.</p>
                 </div>
-
-                <!-- Stats Grid -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-brand-500">
                         <div class="text-gray-500 text-xs uppercase font-bold tracking-wide mb-1">Total Pemain</div>
@@ -252,93 +177,73 @@
                         <div class="text-2xl font-bold text-gray-800" id="dash-activity-count">0</div>
                     </div>
                 </div>
-
-                <!-- Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-gray-700">Tren Kehadiran</h3>
-                            <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">30 Hari</span>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="attendanceChart"></canvas>
-                        </div>
+                        <h3 class="font-bold text-gray-700 mb-4">Tren Kehadiran (7 Hari Terakhir)</h3>
+                        <div class="h-64"><canvas id="attendanceChart"></canvas></div>
                     </div>
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-gray-700">Peta Kekuatan Tim</h3>
-                            <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Rata-rata</span>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="skillsChart"></canvas>
-                        </div>
+                        <h3 class="font-bold text-gray-700 mb-4">Peta Kekuatan Tim</h3>
+                        <div class="h-64"><canvas id="skillsChart"></canvas></div>
                     </div>
                 </div>
             </div>
 
-            <!-- PAGE: PROFIL PEMAIN (NEW) -->
+            <!-- PROFILES -->
             <div id="page-profiles" class="page-section hide">
                 <div class="mb-4">
-                    <input type="text" id="search-profile" placeholder="Cari pemain..." class="w-full md:w-1/3 border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-brand-500 outline-none" onkeyup="renderPlayerProfiles()">
+                    <input type="text" id="search-profile" placeholder="Cari pemain..." class="w-full md:w-1/3 border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-brand-500 outline-none" onkeyup="window.renderPlayerProfiles()">
                 </div>
-                <!-- Grid Container -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="profiles-container">
-                    <!-- Cards will be injected here -->
-                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="profiles-container"></div>
             </div>
 
-            <!-- PAGE: DATA SISWA -->
+            <!-- STUDENTS -->
             <div id="page-students" class="page-section hide">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 admin-only">
                     <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                        <button onclick="prepareAddStudent()" class="flex-1 md:flex-none bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg shadow-sm flex items-center justify-center transition">
+                        <button onclick="window.prepareAddStudent()" class="flex-1 md:flex-none bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg shadow-sm flex items-center justify-center transition">
                             <i class="fa-solid fa-plus mr-2"></i> Tambah
                         </button>
-                        <button onclick="downloadTemplate()" class="flex-1 md:flex-none bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg shadow-sm flex items-center justify-center transition">
+                        <button onclick="window.downloadTemplate()" class="flex-1 md:flex-none bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg shadow-sm flex items-center justify-center transition">
                             <i class="fa-solid fa-file-excel mr-2 text-green-600"></i> Template
                         </button>
                     </div>
                     <div class="w-full md:w-auto">
                          <label class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer flex items-center justify-center transition">
                             <i class="fa-solid fa-upload mr-2"></i> Import Excel
-                            <input type="file" id="import-excel-file" class="hidden" accept=".xlsx, .xls" onchange="handleImportExcel(this)">
+                            <input type="file" id="import-excel-file" class="hidden" accept=".xlsx, .xls" onchange="window.handleImportExcel(this)">
                         </label>
                     </div>
                 </div>
-
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Pemain</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kelas</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Posisi</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Fisik</th>
-                                    <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider admin-only">Aksi</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Pemain</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Kelas</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Posisi</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase hidden md:table-cell">Fisik</th>
+                                    <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase admin-only">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200" id="students-table-body">
-                                <!-- Populated by JS -->
-                            </tbody>
+                            <tbody class="bg-white divide-y divide-gray-200" id="students-table-body"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- PAGE: ABSENSI (UPDATED) -->
+            <!-- ATTENDANCE -->
             <div id="page-attendance" class="page-section hide">
                 <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
                     <div class="flex flex-col md:flex-row items-end gap-4 mb-6 pb-6 border-b border-gray-100">
                         <div class="w-full md:w-auto">
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Tanggal Latihan</label>
-                            <input type="date" id="attendance-date" class="border border-gray-300 rounded-lg p-2.5 w-full md:w-48 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
+                            <input type="date" id="attendance-date" class="border border-gray-300 rounded-lg p-2.5 w-full md:w-48 focus:ring-2 focus:ring-brand-500 outline-none">
                         </div>
-                        
-                        <!-- NEW FILTER KELAS -->
                         <div class="w-full md:w-auto">
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Filter Kelas</label>
-                            <select id="attendance-filter-class" class="border border-gray-300 rounded-lg p-2.5 w-full md:w-40 bg-white focus:ring-2 focus:ring-brand-500 outline-none transition" onchange="if(!document.getElementById('attendance-form-container').classList.contains('hidden')) loadAttendanceForDate()">
+                            <select id="attendance-filter-class" class="border border-gray-300 rounded-lg p-2.5 w-full md:w-40 bg-white focus:ring-2 focus:ring-brand-500 outline-none" onchange="if(!document.getElementById('attendance-form-container').classList.contains('hidden')) window.loadAttendanceForDate()">
                                 <option value="all">Semua Kelas</option>
                                 <option value="1">Kelas 1</option>
                                 <option value="2">Kelas 2</option>
@@ -348,23 +253,11 @@
                                 <option value="6">Kelas 6</option>
                             </select>
                         </div>
-
-                        <button onclick="loadAttendanceForDate()" class="w-full md:w-auto bg-brand-600 text-white px-6 py-2.5 rounded-lg hover:bg-brand-700 font-medium transition shadow-sm">
+                        <button onclick="window.loadAttendanceForDate()" class="w-full md:w-auto bg-brand-600 text-white px-6 py-2.5 rounded-lg hover:bg-brand-700 font-medium transition shadow-sm">
                             Buka Absensi
                         </button>
                     </div>
-                    
                     <div id="attendance-form-container" class="hidden animate-fade-in">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                            <h3 class="font-bold text-lg text-gray-800">Daftar Hadir</h3>
-                            <div class="flex flex-wrap gap-2 text-xs">
-                                <span class="flex items-center bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200"><span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>Hadir</span>
-                                <span class="flex items-center bg-yellow-50 text-yellow-700 px-2 py-1 rounded border border-yellow-200"><span class="w-2 h-2 bg-yellow-400 rounded-full mr-1.5"></span>Sakit</span>
-                                <span class="flex items-center bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200"><span class="w-2 h-2 bg-blue-400 rounded-full mr-1.5"></span>Izin</span>
-                                <span class="flex items-center bg-red-50 text-red-700 px-2 py-1 rounded border border-red-200"><span class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>Alpha</span>
-                            </div>
-                        </div>
-                        
                         <div class="overflow-x-auto rounded-lg border border-gray-200 mb-6">
                             <table class="w-full text-sm">
                                 <thead class="bg-gray-50">
@@ -377,29 +270,26 @@
                                         <th class="p-3 text-left min-w-[150px] font-semibold text-gray-600">Catatan</th>
                                     </tr>
                                 </thead>
-                                <tbody id="attendance-list-body" class="divide-y divide-gray-100">
-                                    <!-- Rows -->
-                                </tbody>
+                                <tbody id="attendance-list-body" class="divide-y divide-gray-100"></tbody>
                             </table>
                         </div>
-
                         <div class="flex justify-end sticky bottom-0 bg-white py-2 border-t md:static md:border-0 admin-only">
-                            <button onclick="saveAttendance()" class="w-full md:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg shadow-lg flex items-center justify-center font-bold transition transform active:scale-95">
-                                <i class="fa-solid fa-save mr-2"></i> Simpan Absensi
+                            <button onclick="window.saveAttendance()" class="w-full md:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg shadow-lg flex items-center justify-center font-bold transition transform active:scale-95">
+                                <i class="fa-solid fa-save mr-2"></i> Simpan ke Database
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- PAGE: REPORT/REKAP (UPDATED) -->
+            <!-- REPORT -->
             <div id="page-report" class="page-section hide">
                 <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
                     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
                         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
                             <label class="text-sm font-medium text-gray-600">Filter:</label>
-                            <input type="month" id="report-month" class="w-full sm:w-auto border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 outline-none">
-                            <select id="report-filter-class" class="w-full sm:w-auto border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 outline-none bg-white">
+                            <input type="month" id="report-month" class="w-full sm:w-auto border border-gray-300 rounded-lg p-2 outline-none">
+                            <select id="report-filter-class" class="w-full sm:w-auto border border-gray-300 rounded-lg p-2 outline-none bg-white">
                                 <option value="all">Semua Kelas</option>
                                 <option value="1">Kelas 1</option>
                                 <option value="2">Kelas 2</option>
@@ -408,15 +298,10 @@
                                 <option value="5">Kelas 5</option>
                                 <option value="6">Kelas 6</option>
                             </select>
-                            <button onclick="generateReport()" class="w-full sm:w-auto bg-brand-600 text-white px-5 py-2 rounded-lg hover:bg-brand-700 transition">
-                                Tampilkan
-                            </button>
+                            <button onclick="window.generateReport()" class="w-full sm:w-auto bg-brand-600 text-white px-5 py-2 rounded-lg hover:bg-brand-700 transition">Tampilkan</button>
                         </div>
-                        <button onclick="exportReportToExcel()" class="w-full md:w-auto bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 shadow-sm flex items-center justify-center transition">
-                            <i class="fa-solid fa-file-excel mr-2"></i> Export Excel
-                        </button>
+                        <button onclick="window.exportReportToExcel()" class="w-full md:w-auto bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 shadow-sm flex items-center justify-center transition"><i class="fa-solid fa-file-excel mr-2"></i> Export Excel</button>
                     </div>
-
                     <div class="overflow-x-auto border border-gray-200 rounded-lg" id="report-table-container">
                         <div class="flex flex-col items-center justify-center py-16 text-gray-400">
                             <i class="fa-regular fa-calendar-days text-4xl mb-3"></i>
@@ -426,33 +311,24 @@
                 </div>
             </div>
 
-            <!-- PAGE: ASSESSMENT -->
+            <!-- ASSESSMENT -->
             <div id="page-assessment" class="page-section hide">
                  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-                    <!-- List Siswa -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 lg:col-span-1 overflow-hidden flex flex-col h-[500px] lg:h-[calc(100vh-140px)]">
                         <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                             <h3 class="font-bold text-gray-700">Pilih Pemain</h3>
-                            <!-- FITUR 2: REKAP DOWNLOAD EXCEL PENILAIAN -->
-                            <button onclick="exportAssessmentToExcel()" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-200 transition" title="Download Excel Penilaian">
-                                <i class="fa-solid fa-file-excel mr-1"></i> Rekap
-                            </button>
+                            <button onclick="window.exportAssessmentToExcel()" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-200 transition"><i class="fa-solid fa-file-excel mr-1"></i> Rekap</button>
                         </div>
                         <div class="px-4 pb-2 bg-gray-50 border-b border-gray-100">
-                            <input type="text" id="search-assess-student" placeholder="Cari nama..." class="w-full border border-gray-300 p-2 rounded-lg text-sm focus:outline-none focus:border-brand-500 transition" onkeyup="filterAssessmentList()">
+                            <input type="text" id="search-assess-student" placeholder="Cari nama..." class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none" onkeyup="window.filterAssessmentList()">
                         </div>
-                        <ul id="assessment-student-list" class="overflow-y-auto flex-1 p-2 space-y-1">
-                            <!-- List -->
-                        </ul>
+                        <ul id="assessment-student-list" class="overflow-y-auto flex-1 p-2 space-y-1"></ul>
                     </div>
-
-                    <!-- Form Penilaian -->
                     <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 lg:col-span-2 overflow-y-auto h-auto lg:h-[calc(100vh-140px)]">
                         <div id="assessment-form-placeholder" class="h-full flex flex-col items-center justify-center text-gray-400 py-10">
                             <i class="fa-solid fa-user-tag text-3xl text-gray-300 mb-4"></i>
                             <p>Pilih pemain di daftar untuk memulai penilaian.</p>
                         </div>
-
                         <div id="assessment-form-real" class="hidden">
                             <div class="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
                                 <div id="assess-photo-preview" class="w-16 h-16 rounded-full bg-gray-200 bg-cover bg-center border-2 border-brand-500 shadow-sm flex-shrink-0"></div>
@@ -464,125 +340,34 @@
                                     </div>
                                 </div>
                             </div>
-
                             <div class="space-y-6">
-                                <!-- Assessment Logic from Previous Code -->
-                                <!-- Karakter -->
                                 <div class="bg-green-50 p-5 rounded-xl border border-green-100">
-                                    <h4 class="font-bold text-green-800 mb-4 flex items-center text-sm uppercase tracking-wide">
-                                        <i class="fa-solid fa-heart w-6"></i> Karakter & Sikap
-                                    </h4>
+                                    <h4 class="font-bold text-green-800 mb-4 flex items-center text-sm uppercase"><i class="fa-solid fa-heart w-6"></i> Karakter & Sikap</h4>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                                        <!-- Items -->
-                                        <div><label class="text-xs font-bold text-gray-600">Disiplin</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-disiplin" oninput="updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-disiplin">0</span></div></div>
-                                        <div><label class="text-xs font-bold text-gray-600">Kerjasama</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-teamwork" oninput="updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-teamwork">0</span></div></div>
-                                        <div><label class="text-xs font-bold text-gray-600">Respek</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-respect" oninput="updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-respect">0</span></div></div>
-                                        <div><label class="text-xs font-bold text-gray-600">Kepemimpinan</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-leadership" oninput="updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-leadership">0</span></div></div>
+                                        <div><label class="text-xs font-bold text-gray-600">Disiplin</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-disiplin" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-disiplin">0</span></div></div>
+                                        <div><label class="text-xs font-bold text-gray-600">Kerjasama</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-teamwork" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-teamwork">0</span></div></div>
+                                        <div><label class="text-xs font-bold text-gray-600">Respek</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-respect" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-respect">0</span></div></div>
+                                        <div><label class="text-xs font-bold text-gray-600">Kepemimpinan</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-leadership" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-leadership">0</span></div></div>
                                     </div>
                                 </div>
-
-                                <!-- Teknik -->
                                 <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
-                                    <h4 class="font-bold text-brand-800 mb-4 flex items-center text-sm uppercase tracking-wide">
-                                        <i class="fa-solid fa-futbol w-6"></i> Teknik Sepakbola
-                                    </h4>
+                                    <h4 class="font-bold text-brand-800 mb-4 flex items-center text-sm uppercase"><i class="fa-solid fa-futbol w-6"></i> Teknik Sepakbola</h4>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                                         <div><label class="text-xs font-bold text-gray-600">Passing</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-passing" oninput="updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-passing">0</span></div></div>
-                                         <div><label class="text-xs font-bold text-gray-600">Control</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-control" oninput="updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-control">0</span></div></div>
-                                         <div><label class="text-xs font-bold text-gray-600">Shooting</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-shooting" oninput="updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-shooting">0</span></div></div>
-                                         <div><label class="text-xs font-bold text-gray-600">Fisik</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-physique" oninput="updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-physique">0</span></div></div>
+                                         <div><label class="text-xs font-bold text-gray-600">Passing</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-passing" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-passing">0</span></div></div>
+                                         <div><label class="text-xs font-bold text-gray-600">Control</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-control" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-control">0</span></div></div>
+                                         <div><label class="text-xs font-bold text-gray-600">Shooting</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-shooting" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-shooting">0</span></div></div>
+                                         <div><label class="text-xs font-bold text-gray-600">Fisik</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-physique" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-physique">0</span></div></div>
                                     </div>
                                 </div>
-
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Catatan Perkembangan</label>
                                     <textarea id="score-notes" rows="3" class="w-full border border-gray-300 rounded-lg p-3 text-sm" placeholder="Tuliskan evaluasi..."></textarea>
                                 </div>
-
-                                <button onclick="saveAssessment()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition admin-only">
-                                    <i class="fa-solid fa-save mr-2"></i> Simpan Penilaian
+                                <button onclick="window.saveAssessment()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition admin-only">
+                                    <i class="fa-solid fa-save mr-2"></i> Simpan Penilaian Ke Cloud
                                 </button>
                             </div>
                         </div>
-                    </div>
-                 </div>
-            </div>
-
-            <!-- PAGE: GUIDE -->
-            <div id="page-guide" class="page-section hide animate-fade-in">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-4xl mx-auto">
-                    <h2 class="text-2xl font-bold text-brand-900 mb-6 border-b pb-4">Panduan Penggunaan Aplikasi</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800 mb-2 flex items-center"><i class="fa-solid fa-user-shield text-brand-600 mr-2"></i> 1. Hak Akses (Login)</h3>
-                            <ul class="list-disc ml-6 text-gray-600 space-y-1">
-                                <li><strong>Koordinator (Guru/Korlas):</strong> Memiliki akses penuh (Tambah Data, Absensi, Penilaian, Laporan).</li>
-                                <li><strong>User Umum (Wali Murid):</strong> Hanya dapat melihat menu <em>Rekap & Laporan</em> serta <em>Profil Pemain</em> untuk memantau kehadiran.</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800 mb-2 flex items-center"><i class="fa-solid fa-users text-brand-600 mr-2"></i> 2. Mengelola Data Pemain</h3>
-                            <p class="text-gray-600 mb-2">Masuk ke menu <strong>Data Pemain</strong>. Anda bisa:</p>
-                            <ul class="list-disc ml-6 text-gray-600 space-y-1">
-                                <li><strong>Tambah Manual:</strong> Isi form nama, kelas, posisi, dll.</li>
-                                <li><strong>Upload Foto:</strong> Bisa upload file langsung dari HP/PC (disimpan lokal) atau menggunakan <strong>Link Google Drive</strong> agar lebih ringan.</li>
-                                <li><strong>Import Excel:</strong> Download template, isi data banyak siswa, lalu upload kembali.</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800 mb-2 flex items-center"><i class="fa-brands fa-google-drive text-brand-600 mr-2"></i> 3. Cara Menggunakan Foto Google Drive</h3>
-                            <ol class="list-decimal ml-6 text-gray-600 space-y-1">
-                                <li>Upload foto anak ke Google Drive Anda.</li>
-                                <li>Klik kanan foto -> <strong>Bagikan (Share)</strong> -> Ubah akses menjadi <strong>Siapa saja yang memiliki link (Anyone with the link)</strong>.</li>
-                                <li>Salin link tersebut.</li>
-                                <li>Tempel (Paste) link ke kolom "Link Foto Google Drive" di aplikasi ini. Aplikasi otomatis menampilkan gambarnya.</li>
-                            </ol>
-                        </div>
-
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800 mb-2 flex items-center"><i class="fa-solid fa-download text-brand-600 mr-2"></i> 4. Backup Data</h3>
-                            <p class="text-gray-600">Aplikasi menyimpan data di browser Anda. Wajib lakukan <strong>Backup Data</strong> secara berkala (tombol di menu kiri bawah) agar data tidak hilang jika browser dibersihkan (Clear Cache).</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PAGE: DEVELOPER -->
-            <div id="page-dev" class="page-section hide animate-fade-in">
-                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-md mx-auto text-center">
-                    
-                    <!-- GANTI LINK FOTO PENGEMBANG DI SINI (Ganti url di dalam src="") -->
-                    <div class="w-32 h-32 mx-auto mb-6 rounded-lg overflow-hidden border-4 border-white shadow-lg bg-gray-100">
-                        <img src="https://github.com/racketboys-pe/abseneskulbola/blob/main/Untitled%20design%20(1).png?raw=true" alt="Foto Pengembang" class="w-full h-full object-cover">
-                    </div>
-                    
-                    <h2 class="text-2xl font-bold text-gray-900 mb-1">Oryza Sativa N</h2>
-                    <p class="text-brand-600 font-medium mb-6">Pengembang Aplikasi</p>
-                    
-                    <div class="bg-gray-50 rounded-lg p-6 text-left inline-block w-full">
-                        <table class="w-full text-sm">
-                            <tr>
-                                <td class="py-3 text-gray-500 font-medium border-b border-gray-200"><i class="fa-solid fa-building-columns mr-2 w-5 text-center"></i>Instansi</td>
-                                <td class="py-3 text-gray-800 font-bold text-right border-b border-gray-200">SDN Ulujami 06 Pagi</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 text-gray-500 font-medium border-b border-gray-200"><i class="fa-solid fa-envelope mr-2 w-5 text-center"></i>Email</td>
-                                <td class="py-3 text-gray-800 font-bold text-right border-b border-gray-200">oryzanurracman17@gmail.com</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 text-gray-500 font-medium"><i class="fa-brands fa-instagram mr-2 w-5 text-center"></i>Instagram</td>
-                                <td class="py-3 text-pink-600 font-bold text-right">
-                                    <a href="https://www.instagram.com/ryzaraccman/?hl=en" target="_blank" class="hover:underline">@ryzaraccman</a>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    
-                    <div class="mt-8 text-xs text-gray-400">
-                        &copy; 2026 Oryza Sativa N
                     </div>
                  </div>
             </div>
@@ -593,58 +378,30 @@
     <!-- MODAL ADD STUDENT -->
     <div id="modal-add-student" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
         <div class="bg-white rounded-xl w-full max-w-md p-6 relative shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button onclick="closeModal('modal-add-student')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-times text-xl"></i>
-            </button>
+            <button onclick="window.closeModal('modal-add-student')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-xl"></i></button>
             <h3 id="modal-title" class="text-xl font-bold mb-6 text-brand-900 border-b pb-2">Tambah Pemain Baru</h3>
-            <form onsubmit="handleAddStudent(event)" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                    <input type="text" id="new-name" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100">
-                </div>
+            <form onsubmit="window.handleAddStudent(event)" class="space-y-4">
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label><input type="text" id="new-name" required class="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-brand-100"></div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Kelas (1-6)</label>
                     <select id="new-class" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white">
-                        <option value="1">Kelas 1</option>
-                        <option value="2">Kelas 2</option>
-                        <option value="3">Kelas 3</option>
-                        <option value="4">Kelas 4</option>
-                        <option value="5">Kelas 5</option>
-                        <option value="6">Kelas 6</option>
+                        <option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option>
+                        <option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Posisi</label>
-                        <select id="new-pos" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white">
-                            <option value="GK">Goal Keeper</option>
-                            <option value="DF">Defender</option>
-                            <option value="MF">Midfielder</option>
-                            <option value="FW">Forward</option>
-                        </select>
-                    </div>
-                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">No. Punggung</label>
-                        <input type="number" id="new-number" class="w-full border border-gray-300 rounded-lg p-2.5">
-                    </div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Posisi</label><select id="new-pos" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white"><option value="GK">Goal Keeper</option><option value="DF">Defender</option><option value="MF">Midfielder</option><option value="FW">Forward</option></select></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">No. Punggung</label><input type="number" id="new-number" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tinggi (cm)</label>
-                        <input type="number" id="new-height" class="w-full border border-gray-300 rounded-lg p-2.5">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Berat (kg)</label>
-                        <input type="number" id="new-weight" class="w-full border border-gray-300 rounded-lg p-2.5">
-                    </div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Tinggi (cm)</label><input type="number" id="new-height" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Berat (kg)</label><input type="number" id="new-weight" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
                 </div>
-                
                 <div class="bg-blue-50 p-3 rounded border border-blue-100">
                     <label class="block text-sm font-bold text-brand-700 mb-1"><i class="fa-brands fa-google-drive"></i> Link Foto Google Drive</label>
                     <input type="text" id="new-photo-url" placeholder="Paste link share drive di sini..." class="w-full border border-gray-300 rounded-lg p-2 text-sm mb-1">
                     <p class="text-[10px] text-gray-500">Gunakan link "Anyone with the link" dari Google Drive agar foto ringan.</p>
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Atau Upload File (Lokal)</label>
                     <input type="file" id="new-photo" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer">
@@ -657,68 +414,162 @@
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-32 transition-transform duration-300 z-[60] flex items-center gap-3">
         <i class="fa-solid fa-check-circle text-green-400 text-xl"></i>
-        <div>
-            <h4 class="font-bold text-sm">Berhasil</h4>
-            <span id="toast-msg" class="text-sm text-gray-300">Notification</span>
-        </div>
+        <div><h4 class="font-bold text-sm">Berhasil</h4><span id="toast-msg" class="text-sm text-gray-300">Notification</span></div>
     </div>
 
-    <script>
-        // --- GLOBAL STATE ---
-        let appData = {
-            currentUser: null, // { role: 'admin' | 'umum' }
+    <!-- MAIN SCRIPT (FIREBASE INTEGRATED) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // ==========================================
+        //  <!-- KONFIGURASI FIREBASE DI SINI -->
+        // ==========================================
+        // Ganti bagian di bawah ini dengan config dari Firebase Console milikmu
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9HEJWLHg9G-zKsiac1jOC-wctodaT_Rg",
+            authDomain: "abseneskulbola.firebaseapp.com",
+            databaseURL: "https://abseneskulbola-default-rtdb.firebaseio.com", // Ditambahkan otomatis berdasarkan Project ID
+            projectId: "abseneskulbola",
+            storageBucket: "abseneskulbola.firebasestorage.app",
+            messagingSenderId: "934476528510",
+            appId: "1:934476528510:web:eeac1449e50ee2968cd12f"
+        };
+        // ==========================================
+
+        let app, db, dbRef;
+        let isFirebaseReady = false;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+            // Gunakan path 'sme_bola_ulujami06' agar data terisolasi di folder tersebut
+            dbRef = ref(db, 'sme_bola_ulujami06');
+            isFirebaseReady = true;
+        } catch (error) {
+            console.error("Firebase Config Error:", error);
+            alert("Konfigurasi Firebase belum diatur! Edit file HTML ini dan masukkan config Anda.");
+        }
+
+        // Global State (Local Copy)
+        window.appData = {
+            currentUser: null,
             students: [],
-            attendance: [], 
+            attendance: [],
             assessments: []
         };
+        
+        window.editingStudentId = null;
+        let attChart = null, skillChart = null;
+        let currentAssessId = null;
 
-        // GLOBAL FOR EDITING
-        let editingStudentId = null;
+        // --- REALTIME LISTENER ---
+        function initRealtimeListener() {
+            if(!isFirebaseReady) return;
+
+            onValue(dbRef, (snapshot) => {
+                const data = snapshot.val();
+                document.getElementById('loading-overlay').classList.add('hide'); // Hide loading spinner
+
+                if (data) {
+                    // Simpan role user saat ini sebelum ditimpa data baru
+                    const currentRole = window.appData.currentUser;
+                    
+                    // Update state lokal dengan data dari server
+                    window.appData.students = data.students || [];
+                    window.appData.attendance = data.attendance || [];
+                    window.appData.assessments = data.assessments || [];
+                    
+                    // Kembalikan role user
+                    window.appData.currentUser = currentRole;
+
+                    // Refresh Tampilan UI secara otomatis
+                    refreshCurrentPage();
+                } else {
+                    // Jika data kosong (pertama kali pakai), inisialisasi
+                    console.log("Database kosong, inisialisasi awal...");
+                }
+            }, (error) => {
+                document.getElementById('loading-overlay').classList.add('hide');
+                console.error("Error reading data:", error);
+                // Fallback jika offline/error: biarkan kosong atau tampilkan pesan
+            });
+        }
+
+        function refreshCurrentPage() {
+            // Cek halaman apa yang sedang aktif, lalu render ulang
+            const activePage = document.querySelector('.page-section:not(.hide)');
+            if(activePage) {
+                const pageId = activePage.id.replace('page-', '');
+                if(pageId === 'students') window.renderStudents();
+                if(pageId === 'dashboard') window.renderDashboard();
+                if(pageId === 'profiles') window.renderPlayerProfiles();
+                // Khusus attendance dan assessment, hati-hati refresh saat user mengetik
+                if(pageId === 'attendance') window.loadAttendanceForDate(); 
+            }
+        }
+
+        // --- SAVE TO CLOUD ---
+        window.saveDataToCloud = function() {
+            if(!isFirebaseReady) return;
+            
+            const dataToSave = {
+                students: window.appData.students,
+                attendance: window.appData.attendance,
+                assessments: window.appData.assessments
+            };
+
+            set(dbRef, dataToSave)
+                .then(() => {
+                    console.log("Data tersinkron ke cloud.");
+                })
+                .catch((error) => {
+                    alert("Gagal menyimpan ke cloud: " + error.message);
+                });
+        }
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
-            loadData();
-            // Do not show page yet, show login
+            initRealtimeListener();
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('attendance-date').valueAsDate = new Date();
+            
+            // Cek jika belum ada config
+            if(firebaseConfig.apiKey === "GANTI_DENGAN_API_KEY_KAMU") {
+                document.getElementById('loading-overlay').innerHTML = `<div class="bg-white p-6 rounded-lg shadow-xl text-center"><h3 class="text-red-600 font-bold mb-2">Konfigurasi Belum Dipasang!</h3><p class="text-sm">Silakan buka file HTML ini dengan Text Editor (Notepad/VS Code)<br>dan masukkan <b>Firebase Config</b> Anda di bagian script.</p></div>`;
+            }
         });
 
-        // --- LOGIN SYSTEM ---
-        function handleLogin(e) {
+        // --- AUTH & UI ---
+        window.handleLogin = function(e) {
             e.preventDefault();
             const role = document.getElementById('login-role').value;
             const pass = document.getElementById('login-pass').value;
-            const errorMsg = document.getElementById('login-error');
-
             let isValid = false;
-
+            
+            // Password Sederhana
             if (role === 'admin' && pass === '1234') isValid = true;
             if (role === 'umum' && pass === '1122') isValid = true;
 
             if (isValid) {
-                appData.currentUser = { role: role };
+                window.appData.currentUser = { role: role };
                 document.getElementById('login-screen').classList.add('hide');
-                updateUIByRole(role);
+                window.updateUIByRole(role);
                 
-                // Redirect logic
-                if (role === 'umum') showPage('report');
-                else showPage('dashboard');
+                if (role === 'umum') window.showPage('report');
+                else window.showPage('dashboard');
 
-                // Update Sidebar Profile
                 document.getElementById('user-role-display').innerText = role === 'admin' ? 'Koordinator' : 'Wali Murid';
                 document.getElementById('user-icon').className = role === 'admin' ? 'fa-solid fa-chalkboard-user text-xs text-white' : 'fa-solid fa-user text-xs text-white';
-
-                showToast(`Selamat datang, ${role === 'admin' ? 'Koordinator' : 'Wali Murid'}`);
+                window.showToast(`Login Berhasil: ${role === 'admin' ? 'Koordinator' : 'Wali Murid'}`);
             } else {
-                errorMsg.classList.remove('hidden');
+                document.getElementById('login-error').classList.remove('hidden');
             }
         }
 
-        function logout() {
-            location.reload(); // Simple reload to lock
-        }
+        window.logout = function() { location.reload(); }
 
-        function updateUIByRole(role) {
+        window.updateUIByRole = function(role) {
             const adminElements = document.querySelectorAll('.admin-only');
             const menuDashboard = document.getElementById('menu-dashboard');
             const menuStudents = document.getElementById('menu-students');
@@ -726,15 +577,12 @@
             const menuAssessment = document.getElementById('menu-assessment');
             
             if (role === 'umum') {
-                // Hide Admin UI Elements
                 adminElements.forEach(el => el.classList.add('hide'));
-                // Hide Menus
                 menuDashboard.classList.add('hide');
                 menuStudents.classList.add('hide');
                 menuAttendance.classList.add('hide');
                 menuAssessment.classList.add('hide');
             } else {
-                // Show Admin UI
                 adminElements.forEach(el => el.classList.remove('hide'));
                 menuDashboard.classList.remove('hide');
                 menuStudents.classList.remove('hide');
@@ -743,53 +591,32 @@
             }
         }
 
-        // --- NAVIGATION ---
-        function toggleSidebar() {
+        window.toggleSidebar = function() {
             const sb = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            if(sb.classList.contains('mobile-hidden')) {
-                sb.classList.remove('mobile-hidden');
-                overlay.classList.remove('hidden');
-            } else {
-                sb.classList.add('mobile-hidden');
-                overlay.classList.add('hidden');
-            }
+            if(sb.classList.contains('mobile-hidden')) { sb.classList.remove('mobile-hidden'); overlay.classList.remove('hidden'); } 
+            else { sb.classList.add('mobile-hidden'); overlay.classList.add('hidden'); }
         }
 
-        function showPage(pageId) {
-            // Permission Check
-            if (appData.currentUser && appData.currentUser.role === 'umum') {
-                if (['dashboard', 'students', 'attendance', 'assessment'].includes(pageId)) {
-                    showToast('Akses Ditolak: Hanya untuk Koordinator');
-                    return;
-                }
+        window.showPage = function(pageId) {
+            if (window.appData.currentUser && window.appData.currentUser.role === 'umum') {
+                if (['dashboard', 'students', 'attendance', 'assessment'].includes(pageId)) return window.showToast('Akses Ditolak');
             }
-
             document.querySelectorAll('.page-section').forEach(el => el.classList.add('hide'));
             document.querySelectorAll('nav a').forEach(el => el.classList.remove('active-nav', 'bg-brand-800'));
             
             const pageEl = document.getElementById(`page-${pageId}`);
             const navEl = document.getElementById(`nav-${pageId}`);
-            
             if(pageEl) pageEl.classList.remove('hide');
             if(navEl) navEl.classList.add('active-nav');
             
-            const titles = {
-                'dashboard': 'Dashboard Tim',
-                'students': 'Database Pemain',
-                'profiles': 'Profil Pemain',
-                'attendance': 'Absensi Harian',
-                'report': 'Rekap & Laporan',
-                'assessment': 'Penilaian Pemain',
-                'guide': 'Panduan Aplikasi',
-                'dev': 'Info Pengembang'
-            };
+            const titles = {'dashboard': 'Dashboard Tim', 'students': 'Database Pemain', 'profiles': 'Profil Pemain', 'attendance': 'Absensi Harian', 'report': 'Rekap & Laporan', 'assessment': 'Penilaian Pemain', 'guide': 'Panduan Aplikasi', 'dev': 'Info Pengembang'};
             document.getElementById('page-title').innerText = titles[pageId] || 'Aplikasi';
 
-            if(pageId === 'dashboard') renderDashboard();
-            if(pageId === 'students') renderStudents();
-            if(pageId === 'assessment') renderAssessmentList();
-            if(pageId === 'profiles') renderPlayerProfiles(); // PERBAIKAN NO. 1
+            if(pageId === 'dashboard') window.renderDashboard();
+            if(pageId === 'students') window.renderStudents();
+            if(pageId === 'assessment') window.renderAssessmentList();
+            if(pageId === 'profiles') window.renderPlayerProfiles();
             
             if (window.innerWidth < 768) {
                 document.getElementById('sidebar').classList.add('mobile-hidden');
@@ -797,50 +624,24 @@
             }
         }
 
-        // --- DATA MANAGEMENT ---
-        function saveData() {
-            localStorage.setItem('sme_bola_ulujami06', JSON.stringify(appData));
-        }
-
-        function loadData() {
-            const stored = localStorage.getItem('sme_bola_ulujami06');
-            if (stored) {
-                const loaded = JSON.parse(stored);
-                // Merge to ensure new fields exist if loading old data
-                appData = { ...appData, ...loaded };
-            } else {
-                // Dummy Data
-                appData.students = [
-                    { id: 1, name: 'Budi Santoso', classVal: '5', pos: 'FW', num: 10, height: 145, weight: 35, photo: null },
-                    { id: 2, name: 'Ahmad Rizky', classVal: '4', pos: 'MF', num: 8, height: 140, weight: 32, photo: null },
-                ];
-                saveData();
-            }
-        }
-
-        function showToast(msg) {
+        window.showToast = function(msg) {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
             t.classList.remove('translate-y-32');
             setTimeout(() => t.classList.add('translate-y-32'), 3000);
         }
 
-        // --- PROFILES MODULE (PERBAIKAN NO. 1) ---
-        function renderPlayerProfiles() {
+        // --- MODULES ---
+        window.renderPlayerProfiles = function() {
             const container = document.getElementById('profiles-container');
             const searchVal = document.getElementById('search-profile').value.toLowerCase();
             container.innerHTML = '';
-
-            const filtered = appData.students.filter(s => s.name.toLowerCase().includes(searchVal));
-
-            if (filtered.length === 0) {
-                container.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">Tidak ada data pemain yang ditemukan.</div>';
-                return;
-            }
-
+            const filtered = window.appData.students.filter(s => s.name.toLowerCase().includes(searchVal));
+            
+            if (filtered.length === 0) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">Tidak ada data.</div>'; return; }
             filtered.forEach(s => {
                 const photoSrc = s.photo ? s.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff`;
-                const card = `
+                container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col items-center hover:shadow-md transition">
                         <div class="w-20 h-20 rounded-full bg-gray-100 mb-3 overflow-hidden border-2 border-brand-100">
                             <img src="${photoSrc}" class="w-full h-full object-cover">
@@ -851,321 +652,183 @@
                             <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold">${s.pos}</span>
                             <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">#${s.num || '-'}</span>
                         </div>
-                    </div>
-                `;
-                container.innerHTML += card;
+                    </div>`;
             });
         }
 
-        // --- STUDENTS MODULE ---
-        function renderStudents() {
+        window.renderStudents = function() {
             const tbody = document.getElementById('students-table-body');
             tbody.innerHTML = '';
-            
-            appData.students.forEach(s => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50 transition-colors";
+            window.appData.students.forEach(s => {
                 const photoSrc = s.photo ? s.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff`;
-                
-                tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap flex items-center">
-                        <div class="h-10 w-10 rounded-full mr-3 border border-gray-200 overflow-hidden bg-gray-100">
-                            <img class="h-full w-full object-cover" src="${photoSrc}" alt="Foto" onerror="this.src='https://placehold.co/40x40?text=User'">
-                        </div>
-                        <div>
-                            <div class="text-sm font-bold text-gray-900">${s.name}</div>
-                            <div class="text-xs text-gray-500">No: ${s.num || '-'}</div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        Kelas ${s.classVal || '-'}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border 
-                            ${s.pos === 'FW' ? 'bg-red-50 text-red-700 border-red-200' : 
-                              s.pos === 'MF' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
-                              s.pos === 'DF' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-gray-100 text-gray-800 border-gray-200'}">
-                            ${s.pos}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
-                        <div class="flex flex-col">
-                            <span>H: ${s.height || '-'} cm</span>
-                            <span>W: ${s.weight || '-'} kg</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium admin-only">
-                        <!-- FITUR 1: TOMBOL EDIT -->
-                        <button onclick="editStudent(${s.id})" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition mr-1" title="Edit">
-                            <i class="fa-solid fa-pencil"></i>
-                        </button>
-                        <button onclick="deleteStudent(${s.id})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition" title="Hapus">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap flex items-center">
+                            <div class="h-10 w-10 rounded-full mr-3 border border-gray-200 overflow-hidden bg-gray-100"><img class="h-full w-full object-cover" src="${photoSrc}" onerror="this.src='https://placehold.co/40x40?text=User'"></div>
+                            <div><div class="text-sm font-bold text-gray-900">${s.name}</div><div class="text-xs text-gray-500">No: ${s.num || '-'}</div></div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Kelas ${s.classVal || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${s.pos === 'FW' ? 'bg-red-50 text-red-700 border-red-200' : s.pos === 'MF' ? 'bg-blue-50 text-blue-700 border-blue-200' : s.pos === 'DF' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-gray-100 text-gray-800 border-gray-200'}">${s.pos}</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell"><div class="flex flex-col"><span>H: ${s.height || '-'} cm</span><span>W: ${s.weight || '-'} kg</span></div></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium admin-only">
+                            <button onclick="window.editStudent(${s.id})" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition mr-1"><i class="fa-solid fa-pencil"></i></button>
+                            <button onclick="window.deleteStudent(${s.id})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>`;
             });
-            // Re-apply admin visibility
-            updateUIByRole(appData.currentUser ? appData.currentUser.role : 'umum');
+            window.updateUIByRole(window.appData.currentUser ? window.appData.currentUser.role : 'umum');
         }
 
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+        window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+        window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
 
-        function convertDriveLink(url) {
-            // Helper to convert standard Drive sharing link to Direct Image Link
-            // Matches /file/d/ID/view or /open?id=ID
-            if (!url) return null;
-            let id = '';
-            const parts = url.split('/');
-            
-            if (url.includes('drive.google.com') && url.includes('/d/')) {
-                const dIndex = parts.indexOf('d');
-                if (dIndex !== -1 && parts.length > dIndex + 1) {
-                    id = parts[dIndex + 1];
-                }
-            } else if (url.includes('id=')) {
-                id = url.split('id=')[1].split('&')[0];
-            }
-
-            if (id) {
-                // Return direct link format
-                return `https://drive.google.com/uc?export=view&id=${id}`;
-            }
-            return url; // Return original if regex fails (maybe it's a direct link already)
-        }
-
-        // FITUR 1: FUNGSI EDIT & TAMBAH
-        function prepareAddStudent() {
-            editingStudentId = null;
+        window.prepareAddStudent = function() {
+            window.editingStudentId = null;
             document.getElementById('modal-title').innerText = "Tambah Pemain Baru";
-            // Reset form
-            document.getElementById('new-name').value = '';
-            document.getElementById('new-class').value = '1';
-            document.getElementById('new-pos').value = 'GK';
-            document.getElementById('new-number').value = '';
-            document.getElementById('new-height').value = '';
-            document.getElementById('new-weight').value = '';
-            document.getElementById('new-photo-url').value = '';
-            document.getElementById('new-photo').value = '';
-            openModal('modal-add-student');
+            document.getElementById('new-name').value = ''; document.getElementById('new-class').value = '1';
+            document.getElementById('new-pos').value = 'GK'; document.getElementById('new-number').value = '';
+            document.getElementById('new-height').value = ''; document.getElementById('new-weight').value = '';
+            document.getElementById('new-photo-url').value = ''; document.getElementById('new-photo').value = '';
+            window.openModal('modal-add-student');
         }
 
-        function editStudent(id) {
-            const student = appData.students.find(s => s.id === id);
+        window.editStudent = function(id) {
+            const student = window.appData.students.find(s => s.id === id);
             if(!student) return;
-
-            editingStudentId = id;
+            window.editingStudentId = id;
             document.getElementById('modal-title').innerText = "Edit Data Pemain";
-            
-            document.getElementById('new-name').value = student.name;
-            document.getElementById('new-class').value = student.classVal;
-            document.getElementById('new-pos').value = student.pos;
-            document.getElementById('new-number').value = student.num;
-            document.getElementById('new-height').value = student.height;
-            document.getElementById('new-weight').value = student.weight;
-            // Note: Cannot preset file input or restore drive link easily if it was converted, 
-            // but we leave them blank to keep existing photo if not changed.
+            document.getElementById('new-name').value = student.name; document.getElementById('new-class').value = student.classVal;
+            document.getElementById('new-pos').value = student.pos; document.getElementById('new-number').value = student.num;
+            document.getElementById('new-height').value = student.height; document.getElementById('new-weight').value = student.weight;
             document.getElementById('new-photo-url').value = ''; 
-            
-            openModal('modal-add-student');
+            window.openModal('modal-add-student');
         }
 
-        async function handleAddStudent(e) {
+        window.handleAddStudent = async function(e) {
             e.preventDefault();
             const fileInput = document.getElementById('new-photo');
             const urlInput = document.getElementById('new-photo-url').value;
             let photoData = null;
 
-            // Priority 1: URL Input (Drive)
             if (urlInput) {
-                photoData = convertDriveLink(urlInput);
-            } 
-            // Priority 2: File Upload (Base64)
-            else if (fileInput.files && fileInput.files[0]) {
-                photoData = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(fileInput.files[0]);
-                });
+                // Convert Drive Link logic
+                let id = '';
+                const parts = urlInput.split('/');
+                if (urlInput.includes('drive.google.com') && urlInput.includes('/d/')) { const dIndex = parts.indexOf('d'); if (dIndex !== -1 && parts.length > dIndex + 1) id = parts[dIndex + 1]; } 
+                else if (urlInput.includes('id=')) { id = urlInput.split('id=')[1].split('&')[0]; }
+                photoData = id ? `https://drive.google.com/uc?export=view&id=${id}` : urlInput;
+            } else if (fileInput.files && fileInput.files[0]) {
+                photoData = await new Promise((resolve) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.readAsDataURL(fileInput.files[0]); });
             }
 
-            if (editingStudentId) {
-                // UPDATE EXISTING
-                const idx = appData.students.findIndex(s => s.id === editingStudentId);
+            if (window.editingStudentId) {
+                const idx = window.appData.students.findIndex(s => s.id === window.editingStudentId);
                 if (idx !== -1) {
-                    appData.students[idx].name = document.getElementById('new-name').value;
-                    appData.students[idx].classVal = document.getElementById('new-class').value;
-                    appData.students[idx].pos = document.getElementById('new-pos').value;
-                    appData.students[idx].num = document.getElementById('new-number').value;
-                    appData.students[idx].height = document.getElementById('new-height').value;
-                    appData.students[idx].weight = document.getElementById('new-weight').value;
-                    if (photoData) appData.students[idx].photo = photoData; // Only update photo if new one provided
+                    window.appData.students[idx].name = document.getElementById('new-name').value;
+                    window.appData.students[idx].classVal = document.getElementById('new-class').value;
+                    window.appData.students[idx].pos = document.getElementById('new-pos').value;
+                    window.appData.students[idx].num = document.getElementById('new-number').value;
+                    window.appData.students[idx].height = document.getElementById('new-height').value;
+                    window.appData.students[idx].weight = document.getElementById('new-weight').value;
+                    if (photoData) window.appData.students[idx].photo = photoData;
                 }
-                showToast('Data pemain diperbarui');
+                window.showToast('Data diperbarui (Sinkronisasi...)');
             } else {
-                // CREATE NEW
                 const newStudent = {
                     id: Date.now(),
-                    name: document.getElementById('new-name').value,
-                    classVal: document.getElementById('new-class').value,
-                    pos: document.getElementById('new-pos').value,
-                    num: document.getElementById('new-number').value,
-                    height: document.getElementById('new-height').value,
-                    weight: document.getElementById('new-weight').value,
-                    photo: photoData
+                    name: document.getElementById('new-name').value, classVal: document.getElementById('new-class').value,
+                    pos: document.getElementById('new-pos').value, num: document.getElementById('new-number').value,
+                    height: document.getElementById('new-height').value, weight: document.getElementById('new-weight').value, photo: photoData
                 };
-                appData.students.push(newStudent);
-                showToast('Pemain berhasil ditambahkan');
+                window.appData.students.push(newStudent);
+                window.showToast('Pemain ditambahkan (Sinkronisasi...)');
             }
-
-            saveData();
-            renderStudents();
-            closeModal('modal-add-student');
+            window.saveDataToCloud();
+            window.closeModal('modal-add-student');
             e.target.reset();
         }
 
-        function deleteStudent(id) {
+        window.deleteStudent = function(id) {
             if(confirm('Yakin hapus data siswa ini?')) {
-                appData.students = appData.students.filter(s => s.id !== id);
-                // Also remove assessments and attendance logs to keep clean? Optional.
-                saveData();
-                renderStudents();
-                showToast('Pemain dihapus');
+                window.appData.students = window.appData.students.filter(s => s.id !== id);
+                window.saveDataToCloud();
+                window.showToast('Pemain dihapus');
             }
         }
 
-        // --- ATTENDANCE MODULE (UPDATED WITH FILTER) ---
-        function loadAttendanceForDate() {
+        window.loadAttendanceForDate = function() {
             const dateVal = document.getElementById('attendance-date').value;
-            const classFilter = document.getElementById('attendance-filter-class').value; // GET FILTER
-            
-            if(!dateVal) return showToast('Pilih tanggal dulu');
+            const classFilter = document.getElementById('attendance-filter-class').value;
+            if(!dateVal) return window.showToast('Pilih tanggal dulu');
 
             document.getElementById('attendance-form-container').classList.remove('hidden');
             const tbody = document.getElementById('attendance-list-body');
             tbody.innerHTML = '';
 
-            const existing = appData.attendance.find(a => a.date === dateVal);
+            const existing = window.appData.attendance.find(a => a.date === dateVal);
             const records = existing ? existing.records : {};
             const notes = existing ? (existing.notes || {}) : {};
 
-            // FILTER STUDENTS
-            let displayedStudents = appData.students;
-            if(classFilter !== 'all') {
-                displayedStudents = displayedStudents.filter(s => s.classVal === classFilter);
-            }
-            
-            // SORT (Optional but good)
+            let displayedStudents = window.appData.students;
+            if(classFilter !== 'all') displayedStudents = displayedStudents.filter(s => s.classVal === classFilter);
             displayedStudents.sort((a,b) => a.name.localeCompare(b.name));
 
-            if(displayedStudents.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Tidak ada siswa di kelas ini.</td></tr>';
-                return;
-            }
+            if(displayedStudents.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Tidak ada siswa di kelas ini.</td></tr>'; return; }
 
             displayedStudents.forEach(s => {
-                const status = records[s.id] || ''; 
-                const note = notes[s.id] || '';
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50 transition-colors";
-                
-                // Read-only if User Umum
-                const disabled = appData.currentUser.role === 'umum' ? 'disabled' : '';
-
-                tr.innerHTML = `
-                    <td class="p-3 text-sm font-medium text-gray-800">${s.name} <span class="text-xs text-gray-400 block">Kls ${s.classVal}</span></td>
-                    <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="H" ${status === 'H' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-green-600 focus:ring-green-500 cursor-pointer"></td>
-                    <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="S" ${status === 'S' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-yellow-500 focus:ring-yellow-500 cursor-pointer"></td>
-                    <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="I" ${status === 'I' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-blue-500 focus:ring-blue-500 cursor-pointer"></td>
-                    <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="A" ${status === 'A' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-red-600 focus:ring-red-500 cursor-pointer"></td>
-                    <td class="p-3"><input type="text" id="note-${s.id}" value="${note}" ${disabled} placeholder="Keterangan..." class="border border-gray-300 rounded px-2 py-1 text-xs w-full focus:border-brand-500 focus:outline-none"></td>
-                `;
-                tbody.appendChild(tr);
+                const status = records[s.id] || ''; const note = notes[s.id] || '';
+                const disabled = window.appData.currentUser.role === 'umum' ? 'disabled' : '';
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-3 text-sm font-medium text-gray-800">${s.name} <span class="text-xs text-gray-400 block">Kls ${s.classVal}</span></td>
+                        <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="H" ${status === 'H' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-green-600 focus:ring-green-500 cursor-pointer"></td>
+                        <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="S" ${status === 'S' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-yellow-500 focus:ring-yellow-500 cursor-pointer"></td>
+                        <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="I" ${status === 'I' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-blue-500 focus:ring-blue-500 cursor-pointer"></td>
+                        <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="A" ${status === 'A' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-red-600 focus:ring-red-500 cursor-pointer"></td>
+                        <td class="p-3"><input type="text" id="note-${s.id}" value="${note}" ${disabled} placeholder="Ket..." class="border border-gray-300 rounded px-2 py-1 text-xs w-full"></td>
+                    </tr>`;
             });
-            updateUIByRole(appData.currentUser.role);
         }
 
-        function saveAttendance() {
+        window.saveAttendance = function() {
             const dateVal = document.getElementById('attendance-date').value;
-            
-            // 1. Find existing attendance object to preserve other classes
-            let attIndex = appData.attendance.findIndex(a => a.date === dateVal);
-            let attData = attIndex >= 0 ? appData.attendance[attIndex] : { date: dateVal, records: {}, notes: {} };
-            
-            // 2. Iterate only through DOM elements that currently exist (filtered view)
-            // This ensures we only update what is currently visible/editable
-            // and we don't accidentally wipe out data for classes not currently shown
-            
-            appData.students.forEach(s => {
-                // Check if this student's radio button exists in current DOM
-                // We use QuerySelector to check existence
+            let attIndex = window.appData.attendance.findIndex(a => a.date === dateVal);
+            // Deep copy atau init baru
+            let attData = attIndex >= 0 ? JSON.parse(JSON.stringify(window.appData.attendance[attIndex])) : { date: dateVal, records: {}, notes: {} };
+
+            window.appData.students.forEach(s => {
                 const radioH = document.querySelector(`input[name="att-${s.id}"][value="H"]`);
-                
-                if (radioH) { // If this element exists in the current view
+                if (radioH) {
                      const radios = document.getElementsByName(`att-${s.id}`);
                      let selectedVal = null;
-                     for (const r of radios) {
-                        if (r.checked) {
-                            selectedVal = r.value;
-                            break;
-                        }
-                     }
-                     
-                     // Update record
-                     if(selectedVal) {
-                        attData.records[s.id] = selectedVal;
-                     }
-                     
+                     for (const r of radios) { if (r.checked) { selectedVal = r.value; break; } }
+                     if(selectedVal) attData.records[s.id] = selectedVal;
                      const noteEl = document.getElementById(`note-${s.id}`);
-                     if(noteEl) {
-                        attData.notes[s.id] = noteEl.value;
-                     }
+                     if(noteEl) attData.notes[s.id] = noteEl.value;
                 }
             });
 
-            if (attIndex >= 0) {
-                appData.attendance[attIndex] = attData;
-            } else {
-                appData.attendance.push(attData);
-            }
-
-            saveData();
-            showToast('Absensi Tersimpan!');
+            if (attIndex >= 0) window.appData.attendance[attIndex] = attData; else window.appData.attendance.push(attData);
+            window.saveDataToCloud();
+            window.showToast('Absensi Tersimpan ke Cloud!');
         }
 
-        // --- REPORT & CHARTS (UPDATED WITH FILTER) ---
-        function generateReport() {
+        window.generateReport = function() {
             const monthVal = document.getElementById('report-month').value;
             const classFilter = document.getElementById('report-filter-class').value;
-
-            if(!monthVal) return showToast('Pilih bulan dulu');
+            if(!monthVal) return window.showToast('Pilih bulan dulu');
             
             const [year, month] = monthVal.split('-');
             const daysInMonth = new Date(year, month, 0).getDate();
             const container = document.getElementById('report-table-container');
 
-            // Filter students
-            let filteredStudents = appData.students;
-            if (classFilter !== 'all') {
-                filteredStudents = filteredStudents.filter(s => s.classVal === classFilter);
-            }
-            
-            // Sort students (optional but good: by Class then Name)
-            filteredStudents.sort((a, b) => {
-                if (a.classVal !== b.classVal) return a.classVal - b.classVal;
-                return a.name.localeCompare(b.name);
-            });
+            let filteredStudents = window.appData.students;
+            if (classFilter !== 'all') filteredStudents = filteredStudents.filter(s => s.classVal === classFilter);
+            filteredStudents.sort((a, b) => { if (a.classVal !== b.classVal) return a.classVal - b.classVal; return a.name.localeCompare(b.name); });
 
-            if (filteredStudents.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-gray-500">Tidak ada data siswa untuk filter ini.</div>`;
-                return;
-            }
+            if (filteredStudents.length === 0) { container.innerHTML = `<div class="p-8 text-center text-gray-500">Tidak ada data siswa.</div>`; return; }
 
-            let html = `<table class="min-w-full divide-y divide-gray-200 text-xs">
-                <thead class="bg-gray-100">
-                    <tr><th class="px-2 py-3 text-left font-bold text-gray-600 sticky left-0 bg-gray-100 z-10 w-40 border-r border-gray-200">Nama (Kelas)</th>`;
+            let html = `<table class="min-w-full divide-y divide-gray-200 text-xs"><thead class="bg-gray-100"><tr><th class="px-2 py-3 text-left font-bold text-gray-600 sticky left-0 bg-gray-100 z-10 w-40 border-r border-gray-200">Nama (Kelas)</th>`;
             for(let i=1; i<=daysInMonth; i++) html += `<th class="px-1 py-3 text-center text-gray-500 w-8 border-r border-gray-200">${i}</th>`;
             html += `<th class="px-2 font-bold bg-green-100">H</th><th class="px-2 font-bold bg-yellow-100">S</th><th class="px-2 font-bold bg-blue-100">I</th><th class="px-2 font-bold bg-red-100">A</th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
 
@@ -1174,7 +837,7 @@
                 html += `<tr><td class="px-2 py-2 font-medium text-gray-900 sticky left-0 bg-white border-r border-gray-200 z-10">${s.name} (${s.classVal})</td>`;
                 for(let day=1; day<=daysInMonth; day++) {
                     const dateStr = `${year}-${month}-${String(day).padStart(2,'0')}`;
-                    const attRecord = appData.attendance.find(r => r.date === dateStr);
+                    const attRecord = window.appData.attendance.find(r => r.date === dateStr);
                     const status = attRecord && attRecord.records[s.id] ? attRecord.records[s.id] : '';
                     if(status === 'H') h++; else if(status === 'S') sk++; else if(status === 'I') i++; else if(status === 'A') a++;
                     let bg = status==='H'?'bg-green-200':status==='S'?'bg-yellow-200':status==='I'?'bg-blue-200':status==='A'?'bg-red-200':'';
@@ -1186,34 +849,30 @@
             container.innerHTML = html;
         }
 
-        // --- ASSESSMENT ---
-        let currentAssessId = null;
-        function renderAssessmentList() {
+        window.renderAssessmentList = function() {
             const ul = document.getElementById('assessment-student-list');
             ul.innerHTML = '';
-            appData.students.forEach(s => {
+            window.appData.students.forEach(s => {
                 const li = document.createElement('li');
                 li.className = "p-3 border border-gray-100 rounded-lg hover:bg-blue-50 cursor-pointer flex items-center justify-between transition group";
                 li.innerHTML = `<div><span class="font-semibold text-sm text-gray-700">${s.name}</span> <span class="text-xs text-gray-400">Kelas ${s.classVal}</span></div>`;
-                li.onclick = () => loadAssessmentForm(s);
+                li.onclick = () => window.loadAssessmentForm(s);
                 ul.appendChild(li);
             });
         }
-        function loadAssessmentForm(student) {
+        
+        window.loadAssessmentForm = function(student) {
             currentAssessId = student.id;
             document.getElementById('assessment-form-placeholder').classList.add('hidden');
             document.getElementById('assessment-form-real').classList.remove('hidden');
             document.getElementById('assess-name').innerText = student.name;
             document.getElementById('assess-class').innerText = "Kelas " + student.classVal;
             document.getElementById('assess-pos').innerText = student.pos;
-            
-            // Photo
             const photoSrc = student.photo ? student.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random&color=fff`;
             document.getElementById('assess-photo-preview').style.backgroundImage = `url('${photoSrc}')`;
 
-            const existing = appData.assessments.find(a => a.studentId === student.id);
+            const existing = window.appData.assessments.find(a => a.studentId === student.id);
             const data = existing || { disiplin:50, teamwork:50, respect:50, leadership:50, passing:50, control:50, shooting:50, physique:50, notes:'' };
-
             const fields = ['disiplin', 'teamwork', 'respect', 'leadership', 'passing', 'control', 'shooting', 'physique'];
             fields.forEach(f => {
                 const el = document.getElementById(`score-${f}`);
@@ -1221,177 +880,88 @@
             });
             document.getElementById('score-notes').value = data.notes || '';
         }
-        function updateRangeVal(input) { document.getElementById(`val-${input.id}`).innerText = input.value; }
-        function saveAssessment() {
+
+        window.updateRangeVal = function(input) { document.getElementById(`val-${input.id}`).innerText = input.value; }
+        
+        window.saveAssessment = function() {
             if(!currentAssessId) return;
             const fields = ['disiplin', 'teamwork', 'respect', 'leadership', 'passing', 'control', 'shooting', 'physique'];
             const newData = { studentId: currentAssessId, lastUpdated: new Date().toISOString(), notes: document.getElementById('score-notes').value };
             fields.forEach(f => newData[f] = document.getElementById(`score-${f}`).value);
             
-            const idx = appData.assessments.findIndex(a => a.studentId === currentAssessId);
-            if(idx >= 0) appData.assessments[idx] = newData; else appData.assessments.push(newData);
-            saveData(); showToast('Penilaian Disimpan!');
+            const idx = window.appData.assessments.findIndex(a => a.studentId === currentAssessId);
+            if(idx >= 0) window.appData.assessments[idx] = newData; else window.appData.assessments.push(newData);
+            window.saveDataToCloud(); 
+            window.showToast('Penilaian Disimpan!');
         }
 
-        // FITUR 2: EXPORT ASSESSMENT EXCEL
-        function exportAssessmentToExcel() {
-            const data = [];
-            // Header
-            data.push(["Nama", "Kelas", "Posisi", "Disiplin", "Teamwork", "Respek", "Leadership", "Passing", "Control", "Shooting", "Fisik", "Catatan"]);
-            
-            appData.students.forEach(s => {
-                const scores = appData.assessments.find(a => a.studentId === s.id) || {};
-                data.push([
-                    s.name, 
-                    s.classVal, 
-                    s.pos,
-                    scores.disiplin || '-',
-                    scores.teamwork || '-',
-                    scores.respect || '-',
-                    scores.leadership || '-',
-                    scores.passing || '-',
-                    scores.control || '-',
-                    scores.shooting || '-',
-                    scores.physique || '-',
-                    scores.notes || '-'
-                ]);
-            });
-
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Rekap Penilaian");
-            XLSX.writeFile(wb, "Rekap_Penilaian_SMEBola.xlsx");
-        }
-
-        // --- UTILS ---
-        function filterAssessmentList() {
+        window.filterAssessmentList = function() {
             const q = document.getElementById('search-assess-student').value.toLowerCase();
             const lis = document.getElementById('assessment-student-list').children;
             for(let li of lis) li.style.display = li.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
         }
-        function downloadTemplate() {
-            const ws = XLSX.utils.aoa_to_sheet([["Nama Lengkap","Kelas","Posisi","No Punggung","Tinggi","Berat"],["Contoh Siswa","5","FW","10","145","35"]]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Template");
-            XLSX.writeFile(wb, "Template_SMEBola.xlsx");
+
+        window.renderDashboard = function() {
+            document.getElementById('dash-total-students').innerText = window.appData.students.length;
+            const totalH = window.appData.students.reduce((acc, s) => acc + parseFloat(s.height || 0), 0);
+            document.getElementById('dash-avg-height').innerText = window.appData.students.length ? (totalH / window.appData.students.length).toFixed(1) : 0;
+            const yearMonth = new Date().toISOString().slice(0, 7);
+            let pCount = 0, tSlots = 0, actCount = 0;
+            window.appData.attendance.forEach(a => { if(a.date.startsWith(yearMonth)) { actCount++; const recs = Object.values(a.records); tSlots += recs.length; pCount += recs.filter(s => s === 'H').length; } });
+            document.getElementById('dash-activity-count').innerText = actCount;
+            document.getElementById('dash-attendance-rate').innerText = tSlots ? Math.round((pCount / tSlots) * 100) + "%" : "0%";
+
+            const ctxAtt = document.getElementById('attendanceChart').getContext('2d');
+            if(attChart) attChart.destroy();
+            const sortedAtt = [...window.appData.attendance].sort((a,b) => new Date(a.date) - new Date(b.date)).slice(-7);
+            attChart = new Chart(ctxAtt, { type: 'line', data: { labels: sortedAtt.map(a => { const d=new Date(a.date); return `${d.getDate()}/${d.getMonth()+1}`; }), datasets: [{ label: 'Kehadiran (%)', data: sortedAtt.map(a => { const recs=Object.values(a.records); return recs.length?Math.round((recs.filter(r=>r==='H').length/recs.length)*100):0; }), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false } });
+
+            const ctxSkill = document.getElementById('skillsChart').getContext('2d');
+            if(skillChart) skillChart.destroy();
+            skillChart = new Chart(ctxSkill, { type: 'radar', data: { labels: ['Disiplin', 'Tim', 'Respek', 'Pass', 'Ctrl', 'Shoot', 'Fisik'], datasets: [{ label: 'Tim', data: [80, 75, 85, 60, 65, 55, 70], backgroundColor: 'rgba(37, 99, 235, 0.2)', borderColor: '#2563eb', pointBackgroundColor: '#1e40af' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100 } } } });
         }
-        function handleImportExcel(input) {
-            const file = input.files[0];
-            const reader = new FileReader();
+
+        window.backupData = function() {
+            // Backup JSON lokal (dari state memory)
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.appData));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "BACKUP_SMEBOLA_" + new Date().toISOString().slice(0,10) + ".json");
+            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
+        }
+        
+        // Export Excel Utils
+        window.downloadTemplate = function() { const ws = XLSX.utils.aoa_to_sheet([["Nama Lengkap","Kelas","Posisi","No Punggung","Tinggi","Berat"],["Contoh Siswa","5","FW","10","145","35"]]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template"); XLSX.writeFile(wb, "Template_SMEBola.xlsx"); }
+        window.handleImportExcel = function(input) {
+            const file = input.files[0]; const reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
+                const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, {type: 'array'});
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
                 let count = 0;
                 for(let i=1; i<json.length; i++) {
                     const row = json[i];
-                    if(row[0]) {
-                        appData.students.push({
-                            id: Date.now() + i,
-                            name: row[0],
-                            classVal: row[1] || '1',
-                            pos: row[2] || 'MF',
-                            num: row[3] || 0,
-                            height: row[4] || 0,
-                            weight: row[5] || 0,
-                            photo: null
-                        });
-                        count++;
-                    }
+                    if(row[0]) { window.appData.students.push({ id: Date.now() + i, name: row[0], classVal: row[1] || '1', pos: row[2] || 'MF', num: row[3] || 0, height: row[4] || 0, weight: row[5] || 0, photo: null }); count++; }
                 }
-                saveData(); renderStudents(); showToast(`Berhasil import ${count} siswa!`); input.value='';
-            };
-            reader.readAsArrayBuffer(file);
+                window.saveDataToCloud(); window.showToast(`Berhasil import ${count} siswa!`); input.value='';
+            }; reader.readAsArrayBuffer(file);
         }
-        function exportReportToExcel() {
-            const monthVal = document.getElementById('report-month').value;
-            const classFilter = document.getElementById('report-filter-class').value;
-            
-            if(!monthVal) return showToast('Generate laporan dulu!');
-            
+        window.exportReportToExcel = function() {
+            const monthVal = document.getElementById('report-month').value; const classFilter = document.getElementById('report-filter-class').value;
+            if(!monthVal) return window.showToast('Generate laporan dulu!');
             const table = document.querySelector('#report-table-container table');
-            if(!table) return showToast('Tampilkan laporan terlebih dahulu!');
-            
+            if(!table) return window.showToast('Tampilkan laporan terlebih dahulu!');
             const filterText = classFilter === 'all' ? 'Semua_Kelas' : 'Kelas_' + classFilter;
-            const wb = XLSX.utils.table_to_book(table, {sheet: "Laporan"});
-            XLSX.writeFile(wb, `Laporan_SMEBola_${monthVal}_${filterText}.xlsx`);
+            const wb = XLSX.utils.table_to_book(table, {sheet: "Laporan"}); XLSX.writeFile(wb, `Laporan_SMEBola_${monthVal}_${filterText}.xlsx`);
         }
-        function backupData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "BACKUP_SMEBOLA_SDN_ULUJAMI06_" + new Date().toISOString().slice(0,10) + ".json");
-            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
-        }
-
-        // FITUR 3: RESTORE DATA
-        function restoreData(input) {
-            const file = input.files[0];
-            if(!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const restoredData = JSON.parse(e.target.result);
-                    // Validation simple
-                    if(restoredData.students && Array.isArray(restoredData.students)) {
-                        appData = restoredData;
-                        saveData();
-                        alert('Database berhasil direstore! Halaman akan dimuat ulang.');
-                        location.reload();
-                    } else {
-                        alert('Format file backup tidak valid!');
-                    }
-                } catch(err) {
-                    alert('Gagal membaca file backup.');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // Charts
-        let attChart = null; let skillChart = null;
-        function renderDashboard() {
-            document.getElementById('dash-total-students').innerText = appData.students.length;
-            const totalH = appData.students.reduce((acc, s) => acc + parseFloat(s.height || 0), 0);
-            document.getElementById('dash-avg-height').innerText = appData.students.length ? (totalH / appData.students.length).toFixed(1) : 0;
-            
-            // Attendance Rate
-            const yearMonth = new Date().toISOString().slice(0, 7);
-            let pCount = 0, tSlots = 0, actCount = 0;
-            appData.attendance.forEach(a => {
-                if(a.date.startsWith(yearMonth)) {
-                    actCount++;
-                    const recs = Object.values(a.records);
-                    tSlots += recs.length;
-                    pCount += recs.filter(s => s === 'H').length;
-                }
+        window.exportAssessmentToExcel = function() {
+            const data = []; data.push(["Nama", "Kelas", "Posisi", "Disiplin", "Teamwork", "Respek", "Leadership", "Passing", "Control", "Shooting", "Fisik", "Catatan"]);
+            window.appData.students.forEach(s => {
+                const scores = window.appData.assessments.find(a => a.studentId === s.id) || {};
+                data.push([s.name, s.classVal, s.pos, scores.disiplin || '-', scores.teamwork || '-', scores.respect || '-', scores.leadership || '-', scores.passing || '-', scores.control || '-', scores.shooting || '-', scores.physique || '-', scores.notes || '-']);
             });
-            document.getElementById('dash-activity-count').innerText = actCount;
-            document.getElementById('dash-attendance-rate').innerText = tSlots ? Math.round((pCount / tSlots) * 100) + "%" : "0%";
-
-            // Chart Render
-            const ctxAtt = document.getElementById('attendanceChart').getContext('2d');
-            if(attChart) attChart.destroy();
-            const sortedAtt = [...appData.attendance].sort((a,b) => new Date(a.date) - new Date(b.date)).slice(-7);
-            attChart = new Chart(ctxAtt, {
-                type: 'line',
-                data: {
-                    labels: sortedAtt.map(a => { const d=new Date(a.date); return `${d.getDate()}/${d.getMonth()+1}`; }),
-                    datasets: [{ label: 'Kehadiran (%)', data: sortedAtt.map(a => { const recs=Object.values(a.records); return recs.length?Math.round((recs.filter(r=>r==='H').length/recs.length)*100):0; }), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }]
-                }, options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            const ctxSkill = document.getElementById('skillsChart').getContext('2d');
-            if(skillChart) skillChart.destroy();
-            skillChart = new Chart(ctxSkill, {
-                type: 'radar',
-                data: {
-                    labels: ['Disiplin', 'Tim', 'Respek', 'Pass', 'Ctrl', 'Shoot', 'Fisik'],
-                    datasets: [{ label: 'Tim', data: [80, 75, 85, 60, 65, 55, 70], backgroundColor: 'rgba(37, 99, 235, 0.2)', borderColor: '#2563eb', pointBackgroundColor: '#1e40af' }]
-                }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100 } } }
-            });
+            const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Rekap Penilaian"); XLSX.writeFile(wb, "Rekap_Penilaian_SMEBola.xlsx");
         }
+
     </script>
 </body>
 </html>
