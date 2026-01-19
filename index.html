@@ -42,33 +42,24 @@
         const { useState, useEffect, useRef } = React;
 
         // =================================================================================
-        // KONFIGURASI APLIKASI (GANTI BAGIAN INI SESUAI KEINGINAN)
+        // KONFIGURASI APLIKASI
         // =================================================================================
         
-        // 1. Masukkan URL Web App dari Google Apps Script di sini setelah deploy
-        // Jika kosong (""), aplikasi akan menggunakan LocalStorage (Offline Mode)
+        // PASTE URL GOOGLE SCRIPT ANDA DI SINI
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3lLXkfN-16qnjZkSXwwc-GbHfdzCc0-tyTzHOZSqUYPX6PdfZ2-2id2ozMKS4aRD1cw/exec"; 
 
-        // 2. Pengaturan Gambar & Tampilan
+        // Pengaturan Gambar & Tampilan
         const ASSETS = {
-            // [GANTI] Link Background Halaman Login
             loginBackground: "https://github.com/racketboys-pe/abseneskulbola/blob/main/WhatsApp%20Image%202026-01-10%20at%2023.17.27.jpeg?raw=true", 
-            
-            // [GANTI] Logo kecil di Sidebar (pojok kiri atas setelah login)
             sidebarLogo: "https://github.com/racketboys-pe/abseneskulbola/blob/main/LOGO%20ULUJAMI%20FOOTBALL.png?raw=true", 
-            
-            // [GANTI] Logo Besar di tengah Dashboard
             dashboardLogo: "https://github.com/racketboys-pe/abseneskulbola/blob/main/LOGO%20ULUJAMI%20FOOTBALL.png?raw=true",
-            
-            // Nama Eskul
-            appName: "ESKUL SEPAKBOLA ULUJAMI06"
+            appName: "Eskul Sepakbola Ulujami 06"
         };
 
-        // 3. Password Login Admin
         const ADMIN_PASSWORD = "admin"; 
 
         // =================================================================================
-        // SYSTEM LOGIC (JANGAN UBAH DI BAWAH INI KECUALI PAHAM CODE)
+        // SYSTEM LOGIC
         // =================================================================================
 
         const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -79,28 +70,29 @@
             return isNaN(date.getTime()) ? dateStr : date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         };
 
-        // --- API HANDLER ---
-        // Fungsi pintar untuk memilih antara Google Script atau LocalStorage
         const api = {
             async request(action, payload = {}) {
                 if (GOOGLE_SCRIPT_URL) {
                     try {
-                        // Menggunakan text/plain untuk menghindari CORS Preflight issue pada GAS
                         const response = await fetch(GOOGLE_SCRIPT_URL, {
                             method: "POST",
                             body: JSON.stringify({ action, ...payload })
                         });
                         const result = await response.json();
-                        if (result.status === 'error') throw new Error(result.message);
-                        return result.data;
+                        // Handle format data baru dari backend
+                        if (result.status === 'success') {
+                            return result.data; 
+                        } else {
+                            throw new Error(result.message || "Unknown error");
+                        }
                     } catch (error) {
                         console.error("API Error:", error);
                         alert("Gagal terhubung ke Database Google: " + error.message);
                         return null;
                     }
                 } else {
-                    // Fallback LocalStorage Logic
-                    await new Promise(r => setTimeout(r, 300)); // Fake delay
+                    // Fallback LocalStorage (Offline Mode)
+                    await new Promise(r => setTimeout(r, 300)); 
                     const students = JSON.parse(localStorage.getItem('eskul_students') || '[]');
                     const logs = JSON.parse(localStorage.getItem('eskul_attendance') || '[]');
 
@@ -116,10 +108,9 @@
                         return true;
                     }
                     if (action === 'SAVE_ATTENDANCE') {
-                        // payload is array of logs
                         const newLogs = [...logs, ...payload];
                         localStorage.setItem('eskul_attendance', JSON.stringify(newLogs));
-                        return newLogs;
+                        return true;
                     }
                 }
             }
@@ -191,16 +182,13 @@
                         <h2 className="text-2xl font-bold text-emerald-800">Dashboard</h2>
                     </div>
 
-                    {/* Logo Banner */}
                     <div className="bg-gradient-to-r from-emerald-600 to-green-500 rounded-2xl p-6 text-white shadow-xl flex items-center justify-between relative overflow-hidden">
                         <div className="z-10">
                             <h3 className="text-2xl font-bold">Selamat Datang, Coach!</h3>
                             <p className="opacity-90 mt-1">Siap memantau latihan hari ini?</p>
                         </div>
-                        {/* [GANTI] Logo Dashboard tampil di sini */}
                         <img src={ASSETS.dashboardLogo} className="w-24 h-24 object-contain opacity-80 drop-shadow-lg z-10" />
                         
-                        {/* Decorative Circles */}
                         <div className="absolute -right-4 -bottom-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
                         <div className="absolute right-20 -top-10 w-20 h-20 bg-white opacity-10 rounded-full"></div>
                     </div>
@@ -225,11 +213,10 @@
                                 attendanceLog.slice().reverse().slice(0, 5).map((log, idx) => {
                                     const student = students.find(s => s.id === log.studentId);
                                     return (
-                                        <div key={idx} className="flex justify-between items-center text-sm">
+                                        <div key={idx} className="flex justify-between items-center text-sm border-b border-gray-50 pb-2 last:border-0">
                                             <div>
-                                                <span className="font-bold text-gray-700">{student ? student.name : 'Unknown'}</span>
-                                                <span className="text-gray-400 mx-2">•</span>
-                                                <span className="text-gray-500">{log.date}</span>
+                                                <div className="font-bold text-gray-700">{student ? student.name : 'Unknown'}</div>
+                                                <div className="text-xs text-gray-500">{student ? student.class : ''} • {log.date}</div>
                                             </div>
                                             <span className={`px-2 py-0.5 rounded text-xs ${log.status === 'Hadir' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                                 {log.status}
@@ -256,7 +243,7 @@
                     html5QrcodeScanner.render((decodedText) => {
                         const student = students.find(s => s.id === decodedText);
                         if (student) {
-                            setScanResult({ type: 'success', msg: `✅ ${student.name} Hadir!` });
+                            setScanResult({ type: 'success', msg: `✅ ${student.name} (${student.class}) Hadir!` });
                             onScanSuccess(student.id);
                             html5QrcodeScanner.pause(true);
                             setTimeout(() => {
@@ -295,7 +282,7 @@
             );
         };
 
-        // 3. MANUAL ATTENDANCE
+        // 3. MANUAL ATTENDANCE (DIUPDATE: MENAMPILKAN KELAS)
         const ManualAttendance = ({ students, onSubmit }) => {
             const [selectedDate, setSelectedDate] = useState(getCurrentDate());
             const [tempAttendance, setTempAttendance] = useState({});
@@ -321,15 +308,19 @@
                             <table className="w-full text-left">
                                 <thead className="border-b-2 border-emerald-100">
                                     <tr>
-                                        <th className="p-3">Nama</th>
+                                        <th className="p-3">Data Pemain</th>
                                         <th className="p-3 text-center">Kehadiran</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
                                     {students.map(s => (
                                         <tr key={s.id} className="hover:bg-gray-50">
-                                            <td className="p-3 font-medium">{s.name} <div className="text-xs text-gray-400">{s.position}</div></td>
-                                            <td className="p-3 flex justify-center gap-1">
+                                            <td className="p-3">
+                                                <div className="font-bold text-gray-800">{s.name}</div>
+                                                <div className="text-xs text-emerald-600 font-semibold">{s.class || 'Kelas -'}</div>
+                                                <div className="text-xs text-gray-400">{s.position}</div>
+                                            </td>
+                                            <td className="p-3 flex justify-center items-center gap-1">
                                                 {['Hadir', 'Sakit', 'Izin', 'Alfa'].map(status => (
                                                     <button key={status} onClick={() => setTempAttendance({...tempAttendance, [s.id]: status})}
                                                         className={`px-3 py-1.5 rounded text-xs font-bold transition ${
@@ -353,7 +344,7 @@
             );
         };
 
-        // 4. STUDENT MANAGER
+        // 4. STUDENT MANAGER (DIUPDATE: MENAMPILKAN KELAS LEBIH JELAS)
         const StudentManager = ({ students, onAdd, onDelete }) => {
             const [form, setForm] = useState({ name: '', position: 'Pemain', class: '' });
             const [showQR, setShowQR] = useState(null);
@@ -374,20 +365,31 @@
                         <input value={form.name} onChange={e=>setForm({...form, name:e.target.value})} placeholder="Nama Lengkap" className="border p-2 rounded flex-1"/>
                         <input value={form.class} onChange={e=>setForm({...form, class:e.target.value})} placeholder="Kelas" className="border p-2 rounded w-24"/>
                         <select value={form.position} onChange={e=>setForm({...form, position:e.target.value})} className="border p-2 rounded">
-                            <option>Kiper</option><option>Bek</option><option>Gelandang</option><option>Penyerang</option>
+                            <option>Pemain</option><option>Kiper</option><option>Bek</option><option>Gelandang</option><option>Penyerang</option>
                         </select>
                         <button className="bg-emerald-600 text-white px-4 py-2 rounded font-bold">+ Tambah</button>
                     </form>
                     <div className="bg-white rounded-xl shadow overflow-hidden">
                         <table className="w-full text-left">
-                            <thead className="bg-gray-100"><tr><th className="p-3">Nama</th><th className="p-3 text-right">Aksi</th></tr></thead>
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="p-3">Info Siswa</th>
+                                    <th className="p-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
                             <tbody className="divide-y">
                                 {students.map(s => (
-                                    <tr key={s.id}>
-                                        <td className="p-3 font-medium">{s.name} <span className="text-gray-400 text-xs ml-1">({s.position})</span></td>
+                                    <tr key={s.id} className="hover:bg-gray-50">
+                                        <td className="p-3">
+                                            <div className="font-bold text-gray-800">{s.name}</div>
+                                            <div className="text-sm text-gray-600">
+                                                <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs font-bold mr-2">{s.class || '-'}</span>
+                                                <span className="text-xs">{s.position}</span>
+                                            </div>
+                                        </td>
                                         <td className="p-3 text-right space-x-2">
-                                            <button onClick={() => setShowQR(s.id)} className="text-blue-600 text-sm hover:underline">QR</button>
-                                            <button onClick={() => onDelete(s.id)} className="text-red-600 text-sm hover:underline">Hapus</button>
+                                            <button onClick={() => setShowQR(s.id)} className="text-blue-600 text-sm hover:underline bg-blue-50 px-2 py-1 rounded">QR Code</button>
+                                            <button onClick={() => onDelete(s.id)} className="text-red-600 text-sm hover:underline bg-red-50 px-2 py-1 rounded">Hapus</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -398,6 +400,7 @@
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowQR(null)}>
                             <div className="bg-white p-6 rounded-xl text-center" onClick={e => e.stopPropagation()}>
                                 <h3 className="font-bold mb-2">{students.find(s=>s.id === showQR)?.name}</h3>
+                                <p className="text-sm text-gray-500 mb-4">{students.find(s=>s.id === showQR)?.class}</p>
                                 <div className="bg-white p-2 inline-block border-2 border-dashed" ref={qrRef}></div>
                                 <button onClick={() => setShowQR(null)} className="block w-full mt-4 text-gray-500">Tutup</button>
                             </div>
@@ -412,7 +415,14 @@
             const downloadExcel = () => {
                 const data = attendanceLog.map(log => {
                     const s = students.find(st => st.id === log.studentId);
-                    return { "Tanggal": log.date, "Nama": s ? s.name : "Deleted", "Status": log.status, "Metode": log.method };
+                    return { 
+                        "Tanggal": log.date, 
+                        "Nama": s ? s.name : "Deleted", 
+                        "Kelas": s ? s.class : "-",
+                        "Posisi": s ? s.position : "-",
+                        "Status": log.status, 
+                        "Metode": log.method 
+                    };
                 });
                 const ws = XLSX.utils.json_to_sheet(data);
                 const wb = XLSX.utils.book_new();
@@ -427,11 +437,18 @@
                     </div>
                     <div className="bg-white rounded-xl shadow overflow-hidden">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-100 uppercase text-xs text-gray-600"><tr><th className="p-3">Tgl</th><th className="p-3">Nama</th><th className="p-3">Status</th></tr></thead>
+                            <thead className="bg-gray-100 uppercase text-xs text-gray-600"><tr><th className="p-3">Tgl</th><th className="p-3">Nama/Kelas</th><th className="p-3">Status</th></tr></thead>
                             <tbody className="divide-y">
                                 {attendanceLog.slice().reverse().map((log, i) => {
                                     const s = students.find(st => st.id === log.studentId);
-                                    return <tr key={i}><td className="p-3">{log.date}</td><td className="p-3 font-medium">{s ? s.name : 'Unknown'}</td><td className="p-3">{log.status}</td></tr>
+                                    return <tr key={i}>
+                                        <td className="p-3 text-gray-500">{log.date}</td>
+                                        <td className="p-3">
+                                            <div className="font-medium text-gray-900">{s ? s.name : 'Unknown'}</div>
+                                            <div className="text-xs text-gray-500">{s ? s.class : ''}</div>
+                                        </td>
+                                        <td className="p-3"><span className={`px-2 py-1 rounded-full text-xs font-bold ${log.status === 'Hadir' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{log.status}</span></td>
+                                    </tr>
                                 })}
                             </tbody>
                         </table>
@@ -448,7 +465,6 @@
             const [logs, setLogs] = useState([]);
             const [loading, setLoading] = useState(false);
 
-            // Initial Data Load
             useEffect(() => {
                 if (isLoggedIn) {
                     loadData();
@@ -468,8 +484,8 @@
 
             const handleAddStudent = async (studentData) => {
                 setLoading(true);
-                const newStudent = await api.request('ADD_STUDENT', studentData);
-                if (newStudent) await loadData();
+                const result = await api.request('ADD_STUDENT', studentData);
+                if (result) await loadData();
                 setLoading(false);
             };
 
@@ -482,32 +498,25 @@
             };
 
             const handleAttendance = async (dataArray) => {
-                // dataArray format: [{studentId, status, date}]
-                // Enrich with method and timestamp
                 const enriched = dataArray.map(d => ({
                     id: generateId(),
                     timestamp: new Date().toISOString(),
                     method: 'Manual',
                     ...d
                 }));
-                
-                // Optimistic UI Update (biar terasa cepat)
                 setLogs([...logs, ...enriched]);
-                
-                // Background Sync
                 await api.request('SAVE_ATTENDANCE', enriched);
             };
 
             const handleScan = async (studentId) => {
                 const today = getCurrentDate();
-                // Prevent duplicate scan for today
                 const exists = logs.some(l => l.studentId === studentId && l.date === today);
                 if (exists) return;
 
                 const payload = [{
                     id: generateId(), studentId, date: today, status: 'Hadir', method: 'Scan', timestamp: new Date().toISOString()
                 }];
-                setLogs([...logs, ...payload]); // Optimistic
+                setLogs([...logs, ...payload]);
                 await api.request('SAVE_ATTENDANCE', payload);
             };
 
@@ -518,7 +527,6 @@
                     {/* Sidebar */}
                     <nav className="bg-white md:w-64 flex-shrink-0 flex md:flex-col justify-between p-4 shadow-xl z-20 sticky top-0 md:relative border-r border-emerald-100">
                         <div className="flex items-center gap-3 mb-0 md:mb-8">
-                            {/* [GANTI] Logo Sidebar menggunakan gambar */}
                             <img src={ASSETS.sidebarLogo} className="w-10 h-10 object-contain bg-emerald-100 rounded-lg p-1" alt="Logo" />
                             <div>
                                 <h1 className="font-bold text-lg leading-tight text-emerald-900">{ASSETS.appName}</h1>
@@ -573,5 +581,3 @@
     </script>
 </body>
 </html>
-
-
