@@ -3,965 +3,573 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SME-Bola SDN Ulujami 06 Pagi (Online)</title>
+    <title>Eskul Sepak Bola - Sistem Absensi</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
-    <!-- SheetJS (XLSX) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Excel Export Library (SheetJS) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa',
-                            500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a', 950: '#172554',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- QRCode Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .hide { display: none !important; }
-        .active-nav { background-color: #1e40af; color: white; border-left: 4px solid #60a5fa; }
-        .mobile-hidden { transform: translateX(-100%); }
-        @media (min-width: 768px) { .mobile-hidden { transform: translateX(0); } }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0fdf4; }
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        
-        /* Loading Overlay */
-        #loading-overlay { display: flex; }
-        .spinner { border: 4px solid rgba(0,0,0,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #3b82f6; animation: spin 1s linear infinite; }
+        /* Animasi Loading */
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #10b981; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-50 h-screen flex overflow-hidden">
+<body>
+    <div id="root"></div>
 
-    <!-- LOADING SCREEN -->
-    <div id="loading-overlay" class="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="spinner mb-4"></div>
-        <p class="text-brand-600 font-bold animate-pulse">Menghubungkan ke Database...</p>
-    </div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="fixed inset-0 z-50 bg-brand-900 flex items-center justify-center p-4 hide" style="background-image: url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop'); background-size: cover; background-position: center;">
-        <div class="absolute inset-0 bg-brand-900 bg-opacity-80"></div>
-        <div class="glass-panel w-full max-w-md p-8 rounded-2xl shadow-2xl relative z-10 animate-fade-in">
-            <div class="text-center mb-8">
-                <div class="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white flex items-center justify-center">
-                     <img src="https://github.com/racketboys-pe/abseneskulbola/blob/main/LOGO%20ULUJAMI%20FOOTBALL.png?raw=true" alt="Logo Tim" class="w-full h-full object-cover">
-                </div>
-                <h1 class="text-2xl font-bold text-gray-800">SME-BOLA ONLINE</h1>
-                <p class="text-brand-600 font-semibold">SDN Ulujami 06 Pagi</p>
-                <p class="text-xs text-gray-500 mt-1">Sistem Manajemen Ekstrakurikuler Realtime</p>
-            </div>
+        // =================================================================================
+        // KONFIGURASI APLIKASI (GANTI BAGIAN INI SESUAI KEINGINAN)
+        // =================================================================================
+        
+        // 1. Masukkan URL Web App dari Google Apps Script di sini setelah deploy
+        // Jika kosong (""), aplikasi akan menggunakan LocalStorage (Offline Mode)
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3lLXkfN-16qnjZkSXwwc-GbHfdzCc0-tyTzHOZSqUYPX6PdfZ2-2id2ozMKS4aRD1cw/exec"; 
 
-            <form onsubmit="window.handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Pengguna</label>
-                    <select id="login-role" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-brand-500 bg-white">
-                        <option value="admin">Koordinator (Guru/Kelas)</option>
-                        <option value="umum">User Umum (Wali Murid)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="login-pass" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-brand-500" placeholder="Masukkan Password">
-                </div>
-                <div id="login-error" class="text-red-500 text-sm text-center hidden bg-red-50 p-2 rounded border border-red-200">
-                    <i class="fa-solid fa-circle-exclamation mr-1"></i> Password salah!
-                </div>
-                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-lg shadow-lg transition active:scale-95">
-                    MASUK APLIKASI
-                </button>
-            </form>
-            <div class="mt-6 text-center text-xs text-gray-400">&copy; 2026 Oryza Sativa N</div>
-        </div>
-    </div>
-
-    <!-- SIDEBAR -->
-    <div id="sidebar-overlay" onclick="window.toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden glass-effect"></div>
-    <aside class="fixed md:static inset-y-0 left-0 w-64 bg-brand-900 text-gray-300 flex flex-col shadow-2xl z-30 transition-transform duration-300 mobile-hidden" id="sidebar">
-        <div class="h-16 flex items-center justify-center border-b border-brand-800 bg-brand-950 px-4">
-            <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-blue-400 mr-3 bg-white">
-                <img src="https://github.com/racketboys-pe/abseneskulbola/blob/main/LOGO%20ULUJAMI%20FOOTBALL.png?raw=true" alt="Logo" class="w-full h-full object-cover">
-            </div>
-            <div>
-                <h1 class="text-lg font-bold text-white tracking-wider leading-none">SME-BOLA</h1>
-                <span class="text-[9px] text-blue-300 uppercase tracking-widest">ONLINE DB</span>
-            </div>
-        </div>
-        <nav class="flex-1 overflow-y-auto py-4">
-            <ul class="space-y-1">
-                <li id="menu-dashboard"><a href="#" onclick="window.showPage('dashboard')" id="nav-dashboard" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors active-nav"><i class="fa-solid fa-chart-pie w-6"></i><span class="font-medium">Dashboard</span></a></li>
-                <li id="menu-profiles"><a href="#" onclick="window.showPage('profiles')" id="nav-profiles" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-id-card-clip w-6"></i><span class="font-medium">Profil Pemain</span></a></li>
-                <li id="menu-students"><a href="#" onclick="window.showPage('students')" id="nav-students" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-users w-6"></i><span class="font-medium">Data Pemain</span></a></li>
-                <li id="menu-attendance"><a href="#" onclick="window.showPage('attendance')" id="nav-attendance" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-calendar-check w-6"></i><span class="font-medium">Absensi Harian</span></a></li>
-                <li id="menu-report"><a href="#" onclick="window.showPage('report')" id="nav-report" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-table w-6"></i><span class="font-medium">Rekap & Laporan</span></a></li>
-                <li id="menu-assessment"><a href="#" onclick="window.showPage('assessment')" id="nav-assessment" class="flex items-center px-6 py-3 hover:bg-brand-800 transition-colors"><i class="fa-solid fa-clipboard-list w-6"></i><span class="font-medium">Penilaian</span></a></li>
-            </ul>
-        </nav>
-        <div class="p-4 border-t border-brand-800 bg-brand-950">
-            <div class="flex items-center mb-3">
-                <div class="w-8 h-8 rounded-full bg-brand-700 flex items-center justify-center mr-2">
-                    <i class="fa-solid fa-user text-xs text-white" id="user-icon"></i>
-                </div>
-                <div>
-                    <div class="text-xs font-bold text-white" id="user-role-display">Guest</div>
-                    <div class="text-[10px] text-green-400 flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1 animate-pulse"></span> Online</div>
-                </div>
-            </div>
-            <button onclick="window.logout()" class="w-full flex items-center justify-center bg-red-900 hover:bg-red-800 text-white py-2 rounded text-xs transition mb-2">
-                <i class="fa-solid fa-sign-out-alt mr-2"></i> Logout
-            </button>
-            <div class="flex gap-2 admin-only">
-                <button onclick="window.backupData()" class="flex-1 flex items-center justify-center bg-brand-700 hover:bg-brand-600 text-white py-2 rounded text-xs transition shadow-lg" title="Backup ke JSON Lokal">
-                    <i class="fa-solid fa-download mr-1"></i> Backup
-                </button>
-            </div>
-        </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative w-full">
-        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-6 z-10 border-b border-gray-200">
-            <div class="flex items-center">
-                <button onclick="window.toggleSidebar()" class="text-brand-700 hover:text-brand-900 focus:outline-none md:hidden mr-4 p-2 rounded-md hover:bg-blue-50">
-                    <i class="fa-solid fa-bars text-xl"></i>
-                </button>
-                <h2 class="text-lg md:text-xl font-bold text-gray-800 truncate" id="page-title">Dashboard</h2>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="hidden md:inline text-sm text-brand-600 bg-blue-50 px-3 py-1 rounded-full font-medium border border-blue-100" id="current-date"></span>
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 md:p-6 scroll-smooth" id="main-container">
+        // 2. Pengaturan Gambar & Tampilan
+        const ASSETS = {
+            // [GANTI] Link Background Halaman Login
+            loginBackground: "https://github.com/racketboys-pe/abseneskulbola/blob/main/WhatsApp%20Image%202026-01-10%20at%2023.17.27.jpeg?raw=true", 
             
-            <!-- DASHBOARD -->
-            <div id="page-dashboard" class="page-section animate-fade-in">
-                <div class="bg-blue-600 rounded-xl p-6 mb-6 text-white shadow-lg bg-gradient-to-r from-blue-700 to-blue-500">
-                    <h2 class="text-2xl font-bold mb-1">Selamat Datang!</h2>
-                    <p class="opacity-90">Data tersinkronisasi secara realtime dengan database Cloud.</p>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-brand-500">
-                        <div class="text-gray-500 text-xs uppercase font-bold tracking-wide mb-1">Total Pemain</div>
-                        <div class="text-2xl font-bold text-gray-800" id="dash-total-students">0</div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500">
-                        <div class="text-gray-500 text-xs uppercase font-bold tracking-wide mb-1">Kehadiran (Bln)</div>
-                        <div class="text-2xl font-bold text-gray-800" id="dash-attendance-rate">0%</div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-yellow-500">
-                        <div class="text-gray-500 text-xs uppercase font-bold tracking-wide mb-1">Rata-rata TB</div>
-                        <div class="text-2xl font-bold text-gray-800"><span id="dash-avg-height">0</span> <span class="text-xs font-normal text-gray-400">cm</span></div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-purple-500">
-                        <div class="text-gray-500 text-xs uppercase font-bold tracking-wide mb-1">Sesi Latihan</div>
-                        <div class="text-2xl font-bold text-gray-800" id="dash-activity-count">0</div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                        <h3 class="font-bold text-gray-700 mb-4">Tren Kehadiran (7 Hari Terakhir)</h3>
-                        <div class="h-64"><canvas id="attendanceChart"></canvas></div>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                        <h3 class="font-bold text-gray-700 mb-4">Peta Kekuatan Tim</h3>
-                        <div class="h-64"><canvas id="skillsChart"></canvas></div>
-                    </div>
-                </div>
-            </div>
+            // [GANTI] Logo kecil di Sidebar (pojok kiri atas setelah login)
+            sidebarLogo: "https://github.com/racketboys-pe/abseneskulbola/blob/main/LOGO%20ULUJAMI%20FOOTBALL.png?raw=true", 
+            
+            // [GANTI] Logo Besar di tengah Dashboard
+            dashboardLogo: "https://github.com/racketboys-pe/abseneskulbola/blob/main/LOGO%20ULUJAMI%20FOOTBALL.png?raw=true",
+            
+            // Nama Eskul
+            appName: "ESKUL SEPAKBOLA ULUJAMI06"
+        };
 
-            <!-- PROFILES -->
-            <div id="page-profiles" class="page-section hide">
-                <div class="mb-4">
-                    <input type="text" id="search-profile" placeholder="Cari pemain..." class="w-full md:w-1/3 border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-brand-500 outline-none" onkeyup="window.renderPlayerProfiles()">
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="profiles-container"></div>
-            </div>
+        // 3. Password Login Admin
+        const ADMIN_PASSWORD = "admin"; 
 
-            <!-- STUDENTS -->
-            <div id="page-students" class="page-section hide">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 admin-only">
-                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                        <button onclick="window.prepareAddStudent()" class="flex-1 md:flex-none bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg shadow-sm flex items-center justify-center transition">
-                            <i class="fa-solid fa-plus mr-2"></i> Tambah
-                        </button>
-                        <button onclick="window.downloadTemplate()" class="flex-1 md:flex-none bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg shadow-sm flex items-center justify-center transition">
-                            <i class="fa-solid fa-file-excel mr-2 text-green-600"></i> Template
-                        </button>
-                    </div>
-                    <div class="w-full md:w-auto">
-                         <label class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer flex items-center justify-center transition">
-                            <i class="fa-solid fa-upload mr-2"></i> Import Excel
-                            <input type="file" id="import-excel-file" class="hidden" accept=".xlsx, .xls" onchange="window.handleImportExcel(this)">
-                        </label>
+        // =================================================================================
+        // SYSTEM LOGIC (JANGAN UBAH DI BAWAH INI KECUALI PAHAM CODE)
+        // =================================================================================
+
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        const getCurrentDate = () => new Date().toISOString().split('T')[0];
+        const formatTime = (dateStr) => {
+            if(!dateStr) return "-";
+            const date = new Date(dateStr);
+            return isNaN(date.getTime()) ? dateStr : date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        };
+
+        // --- API HANDLER ---
+        // Fungsi pintar untuk memilih antara Google Script atau LocalStorage
+        const api = {
+            async request(action, payload = {}) {
+                if (GOOGLE_SCRIPT_URL) {
+                    try {
+                        // Menggunakan text/plain untuk menghindari CORS Preflight issue pada GAS
+                        const response = await fetch(GOOGLE_SCRIPT_URL, {
+                            method: "POST",
+                            body: JSON.stringify({ action, ...payload })
+                        });
+                        const result = await response.json();
+                        if (result.status === 'error') throw new Error(result.message);
+                        return result.data;
+                    } catch (error) {
+                        console.error("API Error:", error);
+                        alert("Gagal terhubung ke Database Google: " + error.message);
+                        return null;
+                    }
+                } else {
+                    // Fallback LocalStorage Logic
+                    await new Promise(r => setTimeout(r, 300)); // Fake delay
+                    const students = JSON.parse(localStorage.getItem('eskul_students') || '[]');
+                    const logs = JSON.parse(localStorage.getItem('eskul_attendance') || '[]');
+
+                    if (action === 'GET_DATA') return { students, logs };
+                    
+                    if (action === 'ADD_STUDENT') {
+                        const newS = { id: generateId(), ...payload };
+                        localStorage.setItem('eskul_students', JSON.stringify([...students, newS]));
+                        return newS;
+                    }
+                    if (action === 'DELETE_STUDENT') {
+                        localStorage.setItem('eskul_students', JSON.stringify(students.filter(s => s.id !== payload.id)));
+                        return true;
+                    }
+                    if (action === 'SAVE_ATTENDANCE') {
+                        // payload is array of logs
+                        const newLogs = [...logs, ...payload];
+                        localStorage.setItem('eskul_attendance', JSON.stringify(newLogs));
+                        return newLogs;
+                    }
+                }
+            }
+        };
+
+        // --- COMPONENTS ---
+
+        // 0. LOGIN COMPONENT
+        const Login = ({ onLogin }) => {
+            const [pass, setPass] = useState("");
+            const [error, setError] = useState(false);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (pass === ADMIN_PASSWORD) {
+                    onLogin();
+                } else {
+                    setError(true);
+                }
+            };
+
+            return (
+                <div 
+                    className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
+                    style={{ backgroundImage: `url(${ASSETS.loginBackground})` }}
+                >
+                    <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+                    
+                    <div className="relative bg-white/90 p-8 rounded-2xl shadow-2xl w-full max-w-md backdrop-blur-md animate-fade-in mx-4">
+                        <div className="text-center mb-6">
+                            <img src={ASSETS.dashboardLogo} className="w-20 h-20 mx-auto mb-4 drop-shadow-md" alt="Logo" />
+                            <h1 className="text-2xl font-bold text-emerald-900">Login Pelatih</h1>
+                            <p className="text-gray-600 text-sm">Sistem Absensi {ASSETS.appName}</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                                <input 
+                                    type="password" 
+                                    value={pass}
+                                    onChange={(e) => { setPass(e.target.value); setError(false); }}
+                                    className="w-full border-2 border-emerald-100 rounded-lg px-4 py-3 focus:outline-none focus:border-emerald-500 transition"
+                                    placeholder="Masukkan password..."
+                                />
+                            </div>
+                            {error && <p className="text-red-500 text-sm text-center">Password salah!</p>}
+                            <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg shadow-lg transition transform hover:scale-[1.02]">
+                                Masuk Aplikasi
+                            </button>
+                        </form>
+                        <div className="mt-6 text-center text-xs text-gray-400">
+                            <p>{GOOGLE_SCRIPT_URL ? "Mode: Online Database (Google Sheets)" : "Mode: Local Storage (Offline)"}</p>
+                            <p className="mt-2">Copyright 2026 Ryzaraccman</p>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Pemain</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Kelas</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Posisi</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase hidden md:table-cell">Fisik</th>
-                                    <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase admin-only">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200" id="students-table-body"></tbody>
+            );
+        };
+
+        // 1. DASHBOARD
+        const Dashboard = ({ students, attendanceLog }) => {
+            const today = getCurrentDate();
+            const presentToday = attendanceLog.filter(a => a.date === today && a.status === 'Hadir').length;
+            
+            return (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-2xl font-bold text-emerald-800">Dashboard</h2>
+                    </div>
+
+                    {/* Logo Banner */}
+                    <div className="bg-gradient-to-r from-emerald-600 to-green-500 rounded-2xl p-6 text-white shadow-xl flex items-center justify-between relative overflow-hidden">
+                        <div className="z-10">
+                            <h3 className="text-2xl font-bold">Selamat Datang, Coach!</h3>
+                            <p className="opacity-90 mt-1">Siap memantau latihan hari ini?</p>
+                        </div>
+                        {/* [GANTI] Logo Dashboard tampil di sini */}
+                        <img src={ASSETS.dashboardLogo} className="w-24 h-24 object-contain opacity-80 drop-shadow-lg z-10" />
+                        
+                        {/* Decorative Circles */}
+                        <div className="absolute -right-4 -bottom-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
+                        <div className="absolute right-20 -top-10 w-20 h-20 bg-white opacity-10 rounded-full"></div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="bg-white p-6 rounded-xl shadow border-l-4 border-emerald-500">
+                            <div className="text-gray-500 text-sm">Total Pemain</div>
+                            <div className="text-3xl font-bold text-gray-800">{students.length}</div>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow border-l-4 border-blue-500">
+                            <div className="text-gray-500 text-sm">Hadir Hari Ini</div>
+                            <div className="text-3xl font-bold text-gray-800">{presentToday}</div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl shadow-md">
+                        <h3 className="font-semibold text-gray-700 mb-4 border-b pb-2">Log Aktivitas Terakhir</h3>
+                        <div className="space-y-3">
+                             {attendanceLog.length === 0 ? (
+                                <p className="text-gray-400 italic text-sm">Belum ada data absensi.</p>
+                            ) : (
+                                attendanceLog.slice().reverse().slice(0, 5).map((log, idx) => {
+                                    const student = students.find(s => s.id === log.studentId);
+                                    return (
+                                        <div key={idx} className="flex justify-between items-center text-sm">
+                                            <div>
+                                                <span className="font-bold text-gray-700">{student ? student.name : 'Unknown'}</span>
+                                                <span className="text-gray-400 mx-2">•</span>
+                                                <span className="text-gray-500">{log.date}</span>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded text-xs ${log.status === 'Hadir' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {log.status}
+                                            </span>
+                                        </div>
+                                    )
+                                })
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 2. SCANNER
+        const Scanner = ({ students, onScanSuccess }) => {
+            const [scanResult, setScanResult] = useState(null);
+            const [isScanning, setIsScanning] = useState(false);
+
+            useEffect(() => {
+                let html5QrcodeScanner;
+                if (isScanning) {
+                    html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+                    html5QrcodeScanner.render((decodedText) => {
+                        const student = students.find(s => s.id === decodedText);
+                        if (student) {
+                            setScanResult({ type: 'success', msg: `✅ ${student.name} Hadir!` });
+                            onScanSuccess(student.id);
+                            html5QrcodeScanner.pause(true);
+                            setTimeout(() => {
+                                html5QrcodeScanner.resume();
+                                setScanResult(null);
+                            }, 2000);
+                        } else {
+                            setScanResult({ type: 'error', msg: '❌ QR Tidak Dikenal' });
+                        }
+                    }, () => {});
+                }
+                return () => html5QrcodeScanner?.clear().catch(() => {});
+            }, [isScanning, students]);
+
+            return (
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold text-emerald-800">Scan Absensi</h2>
+                    <div className="bg-white p-4 rounded-xl shadow text-center">
+                        {!isScanning ? (
+                            <button onClick={() => setIsScanning(true)} className="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-2 mx-auto hover:bg-emerald-700">
+                                <i data-lucide="camera"></i> Buka Kamera
+                            </button>
+                        ) : (
+                            <div>
+                                <div id="reader" className="w-full rounded-lg overflow-hidden"></div>
+                                <button onClick={() => setIsScanning(false)} className="mt-4 bg-red-500 text-white py-2 px-6 rounded-lg">Tutup Kamera</button>
+                            </div>
+                        )}
+                        {scanResult && (
+                            <div className={`mt-4 p-3 rounded-lg font-bold ${scanResult.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                {scanResult.msg}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // 3. MANUAL ATTENDANCE
+        const ManualAttendance = ({ students, onSubmit }) => {
+            const [selectedDate, setSelectedDate] = useState(getCurrentDate());
+            const [tempAttendance, setTempAttendance] = useState({});
+
+            const saveAll = () => {
+                const logs = Object.entries(tempAttendance).map(([studentId, status]) => ({
+                    studentId, status, date: selectedDate
+                }));
+                if(logs.length > 0) onSubmit(logs);
+                setTempAttendance({});
+                alert("Data berhasil disimpan!");
+            };
+
+            return (
+                <div className="space-y-4">
+                     <h2 className="text-2xl font-bold text-emerald-800">Absensi Manual</h2>
+                     <div className="bg-white p-6 rounded-xl shadow">
+                        <div className="flex items-center gap-2 mb-6 bg-gray-50 p-3 rounded-lg border">
+                            <i data-lucide="calendar" className="text-emerald-600"></i>
+                            <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-transparent font-bold outline-none text-gray-700"/>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="border-b-2 border-emerald-100">
+                                    <tr>
+                                        <th className="p-3">Nama</th>
+                                        <th className="p-3 text-center">Kehadiran</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y">
+                                    {students.map(s => (
+                                        <tr key={s.id} className="hover:bg-gray-50">
+                                            <td className="p-3 font-medium">{s.name} <div className="text-xs text-gray-400">{s.position}</div></td>
+                                            <td className="p-3 flex justify-center gap-1">
+                                                {['Hadir', 'Sakit', 'Izin', 'Alfa'].map(status => (
+                                                    <button key={status} onClick={() => setTempAttendance({...tempAttendance, [s.id]: status})}
+                                                        className={`px-3 py-1.5 rounded text-xs font-bold transition ${
+                                                            tempAttendance[s.id] === status 
+                                                            ? (status === 'Hadir' ? 'bg-green-600 text-white' : status === 'Alfa' ? 'bg-red-600 text-white' : 'bg-orange-500 text-white')
+                                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                        }`}
+                                                    >
+                                                        {status[0]}
+                                                    </button>
+                                                ))}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button onClick={saveAll} className="w-full mt-6 bg-emerald-600 text-white py-3 rounded-lg font-bold shadow hover:bg-emerald-700">Simpan Absensi</button>
+                     </div>
+                </div>
+            );
+        };
+
+        // 4. STUDENT MANAGER
+        const StudentManager = ({ students, onAdd, onDelete }) => {
+            const [form, setForm] = useState({ name: '', position: 'Pemain', class: '' });
+            const [showQR, setShowQR] = useState(null);
+            const qrRef = useRef(null);
+
+            useEffect(() => {
+                if (showQR && qrRef.current) {
+                    qrRef.current.innerHTML = "";
+                    new QRCode(qrRef.current, { text: showQR, width: 128, height: 128 });
+                }
+            }, [showQR]);
+
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-emerald-800">Data Pemain</h2>
+                    <form onSubmit={(e) => { e.preventDefault(); if(form.name) { onAdd(form); setForm({name:'', position:'Pemain', class:''}); }}} 
+                        className="bg-white p-4 rounded-xl shadow flex flex-col md:flex-row gap-2">
+                        <input value={form.name} onChange={e=>setForm({...form, name:e.target.value})} placeholder="Nama Lengkap" className="border p-2 rounded flex-1"/>
+                        <input value={form.class} onChange={e=>setForm({...form, class:e.target.value})} placeholder="Kelas" className="border p-2 rounded w-24"/>
+                        <select value={form.position} onChange={e=>setForm({...form, position:e.target.value})} className="border p-2 rounded">
+                            <option>Kiper</option><option>Bek</option><option>Gelandang</option><option>Penyerang</option>
+                        </select>
+                        <button className="bg-emerald-600 text-white px-4 py-2 rounded font-bold">+ Tambah</button>
+                    </form>
+                    <div className="bg-white rounded-xl shadow overflow-hidden">
+                        <table className="w-full text-left">
+                            <thead className="bg-gray-100"><tr><th className="p-3">Nama</th><th className="p-3 text-right">Aksi</th></tr></thead>
+                            <tbody className="divide-y">
+                                {students.map(s => (
+                                    <tr key={s.id}>
+                                        <td className="p-3 font-medium">{s.name} <span className="text-gray-400 text-xs ml-1">({s.position})</span></td>
+                                        <td className="p-3 text-right space-x-2">
+                                            <button onClick={() => setShowQR(s.id)} className="text-blue-600 text-sm hover:underline">QR</button>
+                                            <button onClick={() => onDelete(s.id)} className="text-red-600 text-sm hover:underline">Hapus</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    {showQR && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowQR(null)}>
+                            <div className="bg-white p-6 rounded-xl text-center" onClick={e => e.stopPropagation()}>
+                                <h3 className="font-bold mb-2">{students.find(s=>s.id === showQR)?.name}</h3>
+                                <div className="bg-white p-2 inline-block border-2 border-dashed" ref={qrRef}></div>
+                                <button onClick={() => setShowQR(null)} className="block w-full mt-4 text-gray-500">Tutup</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // 5. REPORTS
+        const Reports = ({ students, attendanceLog }) => {
+            const downloadExcel = () => {
+                const data = attendanceLog.map(log => {
+                    const s = students.find(st => st.id === log.studentId);
+                    return { "Tanggal": log.date, "Nama": s ? s.name : "Deleted", "Status": log.status, "Metode": log.method };
+                });
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Laporan");
+                XLSX.writeFile(wb, "Laporan_Absensi.xlsx");
+            };
+            return (
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-emerald-800">Rekapitulasi</h2>
+                        <button onClick={downloadExcel} className="bg-green-700 text-white px-4 py-2 rounded shadow text-sm font-bold flex gap-2 items-center"><i data-lucide="file-spreadsheet" width="16"></i> Excel</button>
+                    </div>
+                    <div className="bg-white rounded-xl shadow overflow-hidden">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-gray-100 uppercase text-xs text-gray-600"><tr><th className="p-3">Tgl</th><th className="p-3">Nama</th><th className="p-3">Status</th></tr></thead>
+                            <tbody className="divide-y">
+                                {attendanceLog.slice().reverse().map((log, i) => {
+                                    const s = students.find(st => st.id === log.studentId);
+                                    return <tr key={i}><td className="p-3">{log.date}</td><td className="p-3 font-medium">{s ? s.name : 'Unknown'}</td><td className="p-3">{log.status}</td></tr>
+                                })}
+                            </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-
-            <!-- ATTENDANCE -->
-            <div id="page-attendance" class="page-section hide">
-                <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
-                    <div class="flex flex-col md:flex-row items-end gap-4 mb-6 pb-6 border-b border-gray-100">
-                        <div class="w-full md:w-auto">
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Tanggal Latihan</label>
-                            <input type="date" id="attendance-date" class="border border-gray-300 rounded-lg p-2.5 w-full md:w-48 focus:ring-2 focus:ring-brand-500 outline-none">
-                        </div>
-                        <div class="w-full md:w-auto">
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Filter Kelas</label>
-                            <select id="attendance-filter-class" class="border border-gray-300 rounded-lg p-2.5 w-full md:w-40 bg-white focus:ring-2 focus:ring-brand-500 outline-none" onchange="if(!document.getElementById('attendance-form-container').classList.contains('hidden')) window.loadAttendanceForDate()">
-                                <option value="all">Semua Kelas</option>
-                                <option value="1">Kelas 1</option>
-                                <option value="2">Kelas 2</option>
-                                <option value="3">Kelas 3</option>
-                                <option value="4">Kelas 4</option>
-                                <option value="5">Kelas 5</option>
-                                <option value="6">Kelas 6</option>
-                            </select>
-                        </div>
-                        <button onclick="window.loadAttendanceForDate()" class="w-full md:w-auto bg-brand-600 text-white px-6 py-2.5 rounded-lg hover:bg-brand-700 font-medium transition shadow-sm">
-                            Buka Absensi
-                        </button>
-                    </div>
-                    <div id="attendance-form-container" class="hidden animate-fade-in">
-                        <div class="overflow-x-auto rounded-lg border border-gray-200 mb-6">
-                            <table class="w-full text-sm">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="p-3 text-left font-semibold text-gray-600">Nama (Kelas)</th>
-                                        <th class="p-3 text-center w-12 font-semibold text-gray-600">H</th>
-                                        <th class="p-3 text-center w-12 font-semibold text-gray-600">S</th>
-                                        <th class="p-3 text-center w-12 font-semibold text-gray-600">I</th>
-                                        <th class="p-3 text-center w-12 font-semibold text-gray-600">A</th>
-                                        <th class="p-3 text-left min-w-[150px] font-semibold text-gray-600">Catatan</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="attendance-list-body" class="divide-y divide-gray-100"></tbody>
-                            </table>
-                        </div>
-                        <div class="flex justify-end sticky bottom-0 bg-white py-2 border-t md:static md:border-0 admin-only">
-                            <button onclick="window.saveAttendance()" class="w-full md:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg shadow-lg flex items-center justify-center font-bold transition transform active:scale-95">
-                                <i class="fa-solid fa-save mr-2"></i> Simpan ke Database
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- REPORT -->
-            <div id="page-report" class="page-section hide">
-                <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
-                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                        <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                            <label class="text-sm font-medium text-gray-600">Filter:</label>
-                            <input type="month" id="report-month" class="w-full sm:w-auto border border-gray-300 rounded-lg p-2 outline-none">
-                            <select id="report-filter-class" class="w-full sm:w-auto border border-gray-300 rounded-lg p-2 outline-none bg-white">
-                                <option value="all">Semua Kelas</option>
-                                <option value="1">Kelas 1</option>
-                                <option value="2">Kelas 2</option>
-                                <option value="3">Kelas 3</option>
-                                <option value="4">Kelas 4</option>
-                                <option value="5">Kelas 5</option>
-                                <option value="6">Kelas 6</option>
-                            </select>
-                            <button onclick="window.generateReport()" class="w-full sm:w-auto bg-brand-600 text-white px-5 py-2 rounded-lg hover:bg-brand-700 transition">Tampilkan</button>
-                        </div>
-                        <button onclick="window.exportReportToExcel()" class="w-full md:w-auto bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 shadow-sm flex items-center justify-center transition"><i class="fa-solid fa-file-excel mr-2"></i> Export Excel</button>
-                    </div>
-                    <div class="overflow-x-auto border border-gray-200 rounded-lg" id="report-table-container">
-                        <div class="flex flex-col items-center justify-center py-16 text-gray-400">
-                            <i class="fa-regular fa-calendar-days text-4xl mb-3"></i>
-                            <p>Pilih bulan dan kelas untuk melihat rekapitulasi.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ASSESSMENT -->
-            <div id="page-assessment" class="page-section hide">
-                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 lg:col-span-1 overflow-hidden flex flex-col h-[500px] lg:h-[calc(100vh-140px)]">
-                        <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                            <h3 class="font-bold text-gray-700">Pilih Pemain</h3>
-                            <button onclick="window.exportAssessmentToExcel()" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-200 transition"><i class="fa-solid fa-file-excel mr-1"></i> Rekap</button>
-                        </div>
-                        <div class="px-4 pb-2 bg-gray-50 border-b border-gray-100">
-                            <input type="text" id="search-assess-student" placeholder="Cari nama..." class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none" onkeyup="window.filterAssessmentList()">
-                        </div>
-                        <ul id="assessment-student-list" class="overflow-y-auto flex-1 p-2 space-y-1"></ul>
-                    </div>
-                    <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 lg:col-span-2 overflow-y-auto h-auto lg:h-[calc(100vh-140px)]">
-                        <div id="assessment-form-placeholder" class="h-full flex flex-col items-center justify-center text-gray-400 py-10">
-                            <i class="fa-solid fa-user-tag text-3xl text-gray-300 mb-4"></i>
-                            <p>Pilih pemain di daftar untuk memulai penilaian.</p>
-                        </div>
-                        <div id="assessment-form-real" class="hidden">
-                            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
-                                <div id="assess-photo-preview" class="w-16 h-16 rounded-full bg-gray-200 bg-cover bg-center border-2 border-brand-500 shadow-sm flex-shrink-0"></div>
-                                <div>
-                                    <h2 class="text-xl md:text-2xl font-bold text-gray-800" id="assess-name">Nama Pemain</h2>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <span class="bg-brand-100 text-brand-700 text-xs font-bold px-2 py-0.5 rounded" id="assess-class">Kelas</span>
-                                        <span class="text-xs text-gray-500">Posisi: <span id="assess-pos" class="font-bold"></span></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="space-y-6">
-                                <div class="bg-green-50 p-5 rounded-xl border border-green-100">
-                                    <h4 class="font-bold text-green-800 mb-4 flex items-center text-sm uppercase"><i class="fa-solid fa-heart w-6"></i> Karakter & Sikap</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                                        <div><label class="text-xs font-bold text-gray-600">Disiplin</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-disiplin" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-disiplin">0</span></div></div>
-                                        <div><label class="text-xs font-bold text-gray-600">Kerjasama</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-teamwork" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-teamwork">0</span></div></div>
-                                        <div><label class="text-xs font-bold text-gray-600">Respek</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-respect" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-respect">0</span></div></div>
-                                        <div><label class="text-xs font-bold text-gray-600">Kepemimpinan</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-green-600" id="score-leadership" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-leadership">0</span></div></div>
-                                    </div>
-                                </div>
-                                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
-                                    <h4 class="font-bold text-brand-800 mb-4 flex items-center text-sm uppercase"><i class="fa-solid fa-futbol w-6"></i> Teknik Sepakbola</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                                         <div><label class="text-xs font-bold text-gray-600">Passing</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-passing" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-passing">0</span></div></div>
-                                         <div><label class="text-xs font-bold text-gray-600">Control</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-control" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-control">0</span></div></div>
-                                         <div><label class="text-xs font-bold text-gray-600">Shooting</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-shooting" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-shooting">0</span></div></div>
-                                         <div><label class="text-xs font-bold text-gray-600">Fisik</label><div class="flex justify-between"><input type="range" min="0" max="100" class="w-full mr-2 accent-brand-600" id="score-physique" oninput="window.updateRangeVal(this)"><span class="text-xs font-bold" id="val-score-physique">0</span></div></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">Catatan Perkembangan</label>
-                                    <textarea id="score-notes" rows="3" class="w-full border border-gray-300 rounded-lg p-3 text-sm" placeholder="Tuliskan evaluasi..."></textarea>
-                                </div>
-                                <button onclick="window.saveAssessment()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition admin-only">
-                                    <i class="fa-solid fa-save mr-2"></i> Simpan Penilaian Ke Cloud
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                 </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- MODAL ADD STUDENT -->
-    <div id="modal-add-student" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl w-full max-w-md p-6 relative shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button onclick="window.closeModal('modal-add-student')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-xl"></i></button>
-            <h3 id="modal-title" class="text-xl font-bold mb-6 text-brand-900 border-b pb-2">Tambah Pemain Baru</h3>
-            <form onsubmit="window.handleAddStudent(event)" class="space-y-4">
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label><input type="text" id="new-name" required class="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-brand-100"></div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Kelas (1-6)</label>
-                    <select id="new-class" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white">
-                        <option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option>
-                        <option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option>
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Posisi</label><select id="new-pos" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white"><option value="GK">Goal Keeper</option><option value="DF">Defender</option><option value="MF">Midfielder</option><option value="FW">Forward</option></select></div>
-                    <div><label class="block text-sm font-medium text-gray-700 mb-1">No. Punggung</label><input type="number" id="new-number" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Tinggi (cm)</label><input type="number" id="new-height" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
-                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Berat (kg)</label><input type="number" id="new-weight" class="w-full border border-gray-300 rounded-lg p-2.5"></div>
-                </div>
-                <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                    <label class="block text-sm font-bold text-brand-700 mb-1"><i class="fa-brands fa-google-drive"></i> Link Foto Google Drive</label>
-                    <input type="text" id="new-photo-url" placeholder="Paste link share drive di sini..." class="w-full border border-gray-300 rounded-lg p-2 text-sm mb-1">
-                    <p class="text-[10px] text-gray-500">Gunakan link "Anyone with the link" dari Google Drive agar foto ringan.</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Atau Upload File (Lokal)</label>
-                    <input type="file" id="new-photo" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer">
-                </div>
-                <button type="submit" class="w-full bg-brand-600 text-white py-3 rounded-lg hover:bg-brand-700 font-bold shadow-md transition mt-2">Simpan Data</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-32 transition-transform duration-300 z-[60] flex items-center gap-3">
-        <i class="fa-solid fa-check-circle text-green-400 text-xl"></i>
-        <div><h4 class="font-bold text-sm">Berhasil</h4><span id="toast-msg" class="text-sm text-gray-300">Notification</span></div>
-    </div>
-
-    <!-- MAIN SCRIPT (FIREBASE INTEGRATED) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        // ==========================================
-        //  <!-- KONFIGURASI FIREBASE DI SINI -->
-        // ==========================================
-        // Ganti bagian di bawah ini dengan config dari Firebase Console milikmu
-        const firebaseConfig = {
-            apiKey: "AIzaSyC9HEJWLHg9G-zKsiac1jOC-wctodaT_Rg",
-            authDomain: "abseneskulbola.firebaseapp.com",
-            databaseURL: "https://abseneskulbola-default-rtdb.firebaseio.com", // Ditambahkan otomatis berdasarkan Project ID
-            projectId: "abseneskulbola",
-            storageBucket: "abseneskulbola.firebasestorage.app",
-            messagingSenderId: "934476528510",
-            appId: "1:934476528510:web:eeac1449e50ee2968cd12f"
+            );
         };
-        // ==========================================
 
-        let app, db, dbRef;
-        let isFirebaseReady = false;
+        // --- ROOT APP ---
+        const App = () => {
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [view, setView] = useState('dashboard');
+            const [students, setStudents] = useState([]);
+            const [logs, setLogs] = useState([]);
+            const [loading, setLoading] = useState(false);
 
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getDatabase(app);
-            // Gunakan path 'sme_bola_ulujami06' agar data terisolasi di folder tersebut
-            dbRef = ref(db, 'sme_bola_ulujami06');
-            isFirebaseReady = true;
-        } catch (error) {
-            console.error("Firebase Config Error:", error);
-            alert("Konfigurasi Firebase belum diatur! Edit file HTML ini dan masukkan config Anda.");
-        }
-
-        // Global State (Local Copy)
-        window.appData = {
-            currentUser: null,
-            students: [],
-            attendance: [],
-            assessments: []
-        };
-        
-        window.editingStudentId = null;
-        let attChart = null, skillChart = null;
-        let currentAssessId = null;
-
-        // --- REALTIME LISTENER ---
-        function initRealtimeListener() {
-            if(!isFirebaseReady) return;
-
-            onValue(dbRef, (snapshot) => {
-                const data = snapshot.val();
-                document.getElementById('loading-overlay').classList.add('hide'); // Hide loading spinner
-
-                if (data) {
-                    // Simpan role user saat ini sebelum ditimpa data baru
-                    const currentRole = window.appData.currentUser;
-                    
-                    // Update state lokal dengan data dari server
-                    window.appData.students = data.students || [];
-                    window.appData.attendance = data.attendance || [];
-                    window.appData.assessments = data.assessments || [];
-                    
-                    // Kembalikan role user
-                    window.appData.currentUser = currentRole;
-
-                    // Refresh Tampilan UI secara otomatis
-                    refreshCurrentPage();
-                } else {
-                    // Jika data kosong (pertama kali pakai), inisialisasi
-                    console.log("Database kosong, inisialisasi awal...");
+            // Initial Data Load
+            useEffect(() => {
+                if (isLoggedIn) {
+                    loadData();
+                    if (window.lucide) window.lucide.createIcons();
                 }
-            }, (error) => {
-                document.getElementById('loading-overlay').classList.add('hide');
-                console.error("Error reading data:", error);
-                // Fallback jika offline/error: biarkan kosong atau tampilkan pesan
-            });
-        }
+            }, [isLoggedIn, view]);
 
-        function refreshCurrentPage() {
-            // Cek halaman apa yang sedang aktif, lalu render ulang
-            const activePage = document.querySelector('.page-section:not(.hide)');
-            if(activePage) {
-                const pageId = activePage.id.replace('page-', '');
-                if(pageId === 'students') window.renderStudents();
-                if(pageId === 'dashboard') window.renderDashboard();
-                if(pageId === 'profiles') window.renderPlayerProfiles();
-                // Khusus attendance dan assessment, hati-hati refresh saat user mengetik
-                if(pageId === 'attendance') window.loadAttendanceForDate(); 
-            }
-        }
-
-        // --- SAVE TO CLOUD ---
-        window.saveDataToCloud = function() {
-            if(!isFirebaseReady) return;
-            
-            const dataToSave = {
-                students: window.appData.students,
-                attendance: window.appData.attendance,
-                assessments: window.appData.assessments
+            const loadData = async () => {
+                setLoading(true);
+                const data = await api.request('GET_DATA');
+                if (data) {
+                    setStudents(data.students || []);
+                    setLogs(data.logs || []);
+                }
+                setLoading(false);
             };
 
-            set(dbRef, dataToSave)
-                .then(() => {
-                    console.log("Data tersinkron ke cloud.");
-                })
-                .catch((error) => {
-                    alert("Gagal menyimpan ke cloud: " + error.message);
-                });
-        }
+            const handleAddStudent = async (studentData) => {
+                setLoading(true);
+                const newStudent = await api.request('ADD_STUDENT', studentData);
+                if (newStudent) await loadData();
+                setLoading(false);
+            };
 
-        // --- INIT ---
-        document.addEventListener('DOMContentLoaded', () => {
-            initRealtimeListener();
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('attendance-date').valueAsDate = new Date();
-            
-            // Cek jika belum ada config
-            if(firebaseConfig.apiKey === "GANTI_DENGAN_API_KEY_KAMU") {
-                document.getElementById('loading-overlay').innerHTML = `<div class="bg-white p-6 rounded-lg shadow-xl text-center"><h3 class="text-red-600 font-bold mb-2">Konfigurasi Belum Dipasang!</h3><p class="text-sm">Silakan buka file HTML ini dengan Text Editor (Notepad/VS Code)<br>dan masukkan <b>Firebase Config</b> Anda di bagian script.</p></div>`;
-            }
-        });
+            const handleDeleteStudent = async (id) => {
+                if(!confirm("Hapus data siswa ini?")) return;
+                setLoading(true);
+                await api.request('DELETE_STUDENT', { id });
+                await loadData();
+                setLoading(false);
+            };
 
-        // --- AUTH & UI ---
-        window.handleLogin = function(e) {
-            e.preventDefault();
-            const role = document.getElementById('login-role').value;
-            const pass = document.getElementById('login-pass').value;
-            let isValid = false;
-            
-            // Password Sederhana
-            if (role === 'admin' && pass === '1234') isValid = true;
-            if (role === 'umum' && pass === '1122') isValid = true;
-
-            if (isValid) {
-                window.appData.currentUser = { role: role };
-                document.getElementById('login-screen').classList.add('hide');
-                window.updateUIByRole(role);
+            const handleAttendance = async (dataArray) => {
+                // dataArray format: [{studentId, status, date}]
+                // Enrich with method and timestamp
+                const enriched = dataArray.map(d => ({
+                    id: generateId(),
+                    timestamp: new Date().toISOString(),
+                    method: 'Manual',
+                    ...d
+                }));
                 
-                if (role === 'umum') window.showPage('report');
-                else window.showPage('dashboard');
+                // Optimistic UI Update (biar terasa cepat)
+                setLogs([...logs, ...enriched]);
+                
+                // Background Sync
+                await api.request('SAVE_ATTENDANCE', enriched);
+            };
 
-                document.getElementById('user-role-display').innerText = role === 'admin' ? 'Koordinator' : 'Wali Murid';
-                document.getElementById('user-icon').className = role === 'admin' ? 'fa-solid fa-chalkboard-user text-xs text-white' : 'fa-solid fa-user text-xs text-white';
-                window.showToast(`Login Berhasil: ${role === 'admin' ? 'Koordinator' : 'Wali Murid'}`);
-            } else {
-                document.getElementById('login-error').classList.remove('hidden');
-            }
-        }
+            const handleScan = async (studentId) => {
+                const today = getCurrentDate();
+                // Prevent duplicate scan for today
+                const exists = logs.some(l => l.studentId === studentId && l.date === today);
+                if (exists) return;
 
-        window.logout = function() { location.reload(); }
+                const payload = [{
+                    id: generateId(), studentId, date: today, status: 'Hadir', method: 'Scan', timestamp: new Date().toISOString()
+                }];
+                setLogs([...logs, ...payload]); // Optimistic
+                await api.request('SAVE_ATTENDANCE', payload);
+            };
 
-        window.updateUIByRole = function(role) {
-            const adminElements = document.querySelectorAll('.admin-only');
-            const menuDashboard = document.getElementById('menu-dashboard');
-            const menuStudents = document.getElementById('menu-students');
-            const menuAttendance = document.getElementById('menu-attendance');
-            const menuAssessment = document.getElementById('menu-assessment');
-            
-            if (role === 'umum') {
-                adminElements.forEach(el => el.classList.add('hide'));
-                menuDashboard.classList.add('hide');
-                menuStudents.classList.add('hide');
-                menuAttendance.classList.add('hide');
-                menuAssessment.classList.add('hide');
-            } else {
-                adminElements.forEach(el => el.classList.remove('hide'));
-                menuDashboard.classList.remove('hide');
-                menuStudents.classList.remove('hide');
-                menuAttendance.classList.remove('hide');
-                menuAssessment.classList.remove('hide');
-            }
-        }
+            if (!isLoggedIn) return <Login onLogin={() => setIsLoggedIn(true)} />;
 
-        window.toggleSidebar = function() {
-            const sb = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            if(sb.classList.contains('mobile-hidden')) { sb.classList.remove('mobile-hidden'); overlay.classList.remove('hidden'); } 
-            else { sb.classList.add('mobile-hidden'); overlay.classList.add('hidden'); }
-        }
-
-        window.showPage = function(pageId) {
-            if (window.appData.currentUser && window.appData.currentUser.role === 'umum') {
-                if (['dashboard', 'students', 'attendance', 'assessment'].includes(pageId)) return window.showToast('Akses Ditolak');
-            }
-            document.querySelectorAll('.page-section').forEach(el => el.classList.add('hide'));
-            document.querySelectorAll('nav a').forEach(el => el.classList.remove('active-nav', 'bg-brand-800'));
-            
-            const pageEl = document.getElementById(`page-${pageId}`);
-            const navEl = document.getElementById(`nav-${pageId}`);
-            if(pageEl) pageEl.classList.remove('hide');
-            if(navEl) navEl.classList.add('active-nav');
-            
-            const titles = {'dashboard': 'Dashboard Tim', 'students': 'Database Pemain', 'profiles': 'Profil Pemain', 'attendance': 'Absensi Harian', 'report': 'Rekap & Laporan', 'assessment': 'Penilaian Pemain', 'guide': 'Panduan Aplikasi', 'dev': 'Info Pengembang'};
-            document.getElementById('page-title').innerText = titles[pageId] || 'Aplikasi';
-
-            if(pageId === 'dashboard') window.renderDashboard();
-            if(pageId === 'students') window.renderStudents();
-            if(pageId === 'assessment') window.renderAssessmentList();
-            if(pageId === 'profiles') window.renderPlayerProfiles();
-            
-            if (window.innerWidth < 768) {
-                document.getElementById('sidebar').classList.add('mobile-hidden');
-                document.getElementById('sidebar-overlay').classList.add('hidden');
-            }
-        }
-
-        window.showToast = function(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
-            t.classList.remove('translate-y-32');
-            setTimeout(() => t.classList.add('translate-y-32'), 3000);
-        }
-
-        // --- MODULES ---
-        window.renderPlayerProfiles = function() {
-            const container = document.getElementById('profiles-container');
-            const searchVal = document.getElementById('search-profile').value.toLowerCase();
-            container.innerHTML = '';
-            const filtered = window.appData.students.filter(s => s.name.toLowerCase().includes(searchVal));
-            
-            if (filtered.length === 0) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 py-10">Tidak ada data.</div>'; return; }
-            filtered.forEach(s => {
-                const photoSrc = s.photo ? s.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff`;
-                container.innerHTML += `
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col items-center hover:shadow-md transition">
-                        <div class="w-20 h-20 rounded-full bg-gray-100 mb-3 overflow-hidden border-2 border-brand-100">
-                            <img src="${photoSrc}" class="w-full h-full object-cover">
+            return (
+                <div className="flex flex-col md:flex-row h-screen bg-emerald-50 text-gray-800 font-sans">
+                    {/* Sidebar */}
+                    <nav className="bg-white md:w-64 flex-shrink-0 flex md:flex-col justify-between p-4 shadow-xl z-20 sticky top-0 md:relative border-r border-emerald-100">
+                        <div className="flex items-center gap-3 mb-0 md:mb-8">
+                            {/* [GANTI] Logo Sidebar menggunakan gambar */}
+                            <img src={ASSETS.sidebarLogo} className="w-10 h-10 object-contain bg-emerald-100 rounded-lg p-1" alt="Logo" />
+                            <div>
+                                <h1 className="font-bold text-lg leading-tight text-emerald-900">{ASSETS.appName}</h1>
+                                <p className="text-xs text-gray-500">Admin Panel</p>
+                            </div>
                         </div>
-                        <h3 class="font-bold text-gray-800 text-center truncate w-full">${s.name}</h3>
-                        <div class="text-xs text-gray-500 mb-2">Kelas ${s.classVal}</div>
-                        <div class="flex gap-2 text-xs">
-                            <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold">${s.pos}</span>
-                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">#${s.num || '-'}</span>
+
+                        <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-visible w-full no-scrollbar">
+                            {[
+                                { id: 'dashboard', icon: 'layout-dashboard', label: 'Dashboard' },
+                                { id: 'scan', icon: 'qr-code', label: 'Scan Mode' },
+                                { id: 'manual', icon: 'clipboard-check', label: 'Input Manual' },
+                                { id: 'students', icon: 'users', label: 'Data Pemain' },
+                                { id: 'reports', icon: 'bar-chart-3', label: 'Laporan' },
+                            ].map(menu => (
+                                <button key={menu.id} onClick={() => setView(menu.id)}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium text-sm whitespace-nowrap ${
+                                        view === menu.id ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-gray-600 hover:bg-emerald-50'
+                                    }`}
+                                >
+                                    <i data-lucide={menu.icon} width="18"></i>
+                                    <span className="hidden md:inline">{menu.label}</span>
+                                </button>
+                            ))}
                         </div>
-                    </div>`;
-            });
-        }
+                        <button onClick={() => setIsLoggedIn(false)} className="hidden md:flex mt-auto items-center gap-2 text-red-500 text-sm px-4 py-2 hover:bg-red-50 rounded-lg transition">
+                            <i data-lucide="log-out" width="16"></i> Logout
+                        </button>
+                    </nav>
 
-        window.renderStudents = function() {
-            const tbody = document.getElementById('students-table-body');
-            tbody.innerHTML = '';
-            window.appData.students.forEach(s => {
-                const photoSrc = s.photo ? s.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&color=fff`;
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap flex items-center">
-                            <div class="h-10 w-10 rounded-full mr-3 border border-gray-200 overflow-hidden bg-gray-100"><img class="h-full w-full object-cover" src="${photoSrc}" onerror="this.src='https://placehold.co/40x40?text=User'"></div>
-                            <div><div class="text-sm font-bold text-gray-900">${s.name}</div><div class="text-xs text-gray-500">No: ${s.num || '-'}</div></div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Kelas ${s.classVal || '-'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${s.pos === 'FW' ? 'bg-red-50 text-red-700 border-red-200' : s.pos === 'MF' ? 'bg-blue-50 text-blue-700 border-blue-200' : s.pos === 'DF' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-gray-100 text-gray-800 border-gray-200'}">${s.pos}</span></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell"><div class="flex flex-col"><span>H: ${s.height || '-'} cm</span><span>W: ${s.weight || '-'} kg</span></div></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium admin-only">
-                            <button onclick="window.editStudent(${s.id})" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition mr-1"><i class="fa-solid fa-pencil"></i></button>
-                            <button onclick="window.deleteStudent(${s.id})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>`;
-            });
-            window.updateUIByRole(window.appData.currentUser ? window.appData.currentUser.role : 'umum');
-        }
+                    {/* Main Content */}
+                    <main className="flex-1 overflow-y-auto relative">
+                        {loading && (
+                            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-50 flex items-center justify-center">
+                                <div className="spinner"></div>
+                            </div>
+                        )}
+                        <div className="max-w-4xl mx-auto p-4 md:p-8 pb-20">
+                            {view === 'dashboard' && <Dashboard students={students} attendanceLog={logs} />}
+                            {view === 'scan' && <Scanner students={students} onScanSuccess={handleScan} />}
+                            {view === 'manual' && <ManualAttendance students={students} onSubmit={handleAttendance} />}
+                            {view === 'students' && <StudentManager students={students} onAdd={handleAddStudent} onDelete={handleDeleteStudent} />}
+                            {view === 'reports' && <Reports students={students} attendanceLog={logs} />}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
 
-        window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
-        window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
-
-        window.prepareAddStudent = function() {
-            window.editingStudentId = null;
-            document.getElementById('modal-title').innerText = "Tambah Pemain Baru";
-            document.getElementById('new-name').value = ''; document.getElementById('new-class').value = '1';
-            document.getElementById('new-pos').value = 'GK'; document.getElementById('new-number').value = '';
-            document.getElementById('new-height').value = ''; document.getElementById('new-weight').value = '';
-            document.getElementById('new-photo-url').value = ''; document.getElementById('new-photo').value = '';
-            window.openModal('modal-add-student');
-        }
-
-        window.editStudent = function(id) {
-            const student = window.appData.students.find(s => s.id === id);
-            if(!student) return;
-            window.editingStudentId = id;
-            document.getElementById('modal-title').innerText = "Edit Data Pemain";
-            document.getElementById('new-name').value = student.name; document.getElementById('new-class').value = student.classVal;
-            document.getElementById('new-pos').value = student.pos; document.getElementById('new-number').value = student.num;
-            document.getElementById('new-height').value = student.height; document.getElementById('new-weight').value = student.weight;
-            document.getElementById('new-photo-url').value = ''; 
-            window.openModal('modal-add-student');
-        }
-
-        window.handleAddStudent = async function(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById('new-photo');
-            const urlInput = document.getElementById('new-photo-url').value;
-            let photoData = null;
-
-            if (urlInput) {
-                // Convert Drive Link logic
-                let id = '';
-                const parts = urlInput.split('/');
-                if (urlInput.includes('drive.google.com') && urlInput.includes('/d/')) { const dIndex = parts.indexOf('d'); if (dIndex !== -1 && parts.length > dIndex + 1) id = parts[dIndex + 1]; } 
-                else if (urlInput.includes('id=')) { id = urlInput.split('id=')[1].split('&')[0]; }
-                photoData = id ? `https://drive.google.com/uc?export=view&id=${id}` : urlInput;
-            } else if (fileInput.files && fileInput.files[0]) {
-                photoData = await new Promise((resolve) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.readAsDataURL(fileInput.files[0]); });
-            }
-
-            if (window.editingStudentId) {
-                const idx = window.appData.students.findIndex(s => s.id === window.editingStudentId);
-                if (idx !== -1) {
-                    window.appData.students[idx].name = document.getElementById('new-name').value;
-                    window.appData.students[idx].classVal = document.getElementById('new-class').value;
-                    window.appData.students[idx].pos = document.getElementById('new-pos').value;
-                    window.appData.students[idx].num = document.getElementById('new-number').value;
-                    window.appData.students[idx].height = document.getElementById('new-height').value;
-                    window.appData.students[idx].weight = document.getElementById('new-weight').value;
-                    if (photoData) window.appData.students[idx].photo = photoData;
-                }
-                window.showToast('Data diperbarui (Sinkronisasi...)');
-            } else {
-                const newStudent = {
-                    id: Date.now(),
-                    name: document.getElementById('new-name').value, classVal: document.getElementById('new-class').value,
-                    pos: document.getElementById('new-pos').value, num: document.getElementById('new-number').value,
-                    height: document.getElementById('new-height').value, weight: document.getElementById('new-weight').value, photo: photoData
-                };
-                window.appData.students.push(newStudent);
-                window.showToast('Pemain ditambahkan (Sinkronisasi...)');
-            }
-            window.saveDataToCloud();
-            window.closeModal('modal-add-student');
-            e.target.reset();
-        }
-
-        window.deleteStudent = function(id) {
-            if(confirm('Yakin hapus data siswa ini?')) {
-                window.appData.students = window.appData.students.filter(s => s.id !== id);
-                window.saveDataToCloud();
-                window.showToast('Pemain dihapus');
-            }
-        }
-
-        window.loadAttendanceForDate = function() {
-            const dateVal = document.getElementById('attendance-date').value;
-            const classFilter = document.getElementById('attendance-filter-class').value;
-            if(!dateVal) return window.showToast('Pilih tanggal dulu');
-
-            document.getElementById('attendance-form-container').classList.remove('hidden');
-            const tbody = document.getElementById('attendance-list-body');
-            tbody.innerHTML = '';
-
-            const existing = window.appData.attendance.find(a => a.date === dateVal);
-            const records = existing ? existing.records : {};
-            const notes = existing ? (existing.notes || {}) : {};
-
-            let displayedStudents = window.appData.students;
-            if(classFilter !== 'all') displayedStudents = displayedStudents.filter(s => s.classVal === classFilter);
-            displayedStudents.sort((a,b) => a.name.localeCompare(b.name));
-
-            if(displayedStudents.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Tidak ada siswa di kelas ini.</td></tr>'; return; }
-
-            displayedStudents.forEach(s => {
-                const status = records[s.id] || ''; const note = notes[s.id] || '';
-                const disabled = window.appData.currentUser.role === 'umum' ? 'disabled' : '';
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="p-3 text-sm font-medium text-gray-800">${s.name} <span class="text-xs text-gray-400 block">Kls ${s.classVal}</span></td>
-                        <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="H" ${status === 'H' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-green-600 focus:ring-green-500 cursor-pointer"></td>
-                        <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="S" ${status === 'S' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-yellow-500 focus:ring-yellow-500 cursor-pointer"></td>
-                        <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="I" ${status === 'I' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-blue-500 focus:ring-blue-500 cursor-pointer"></td>
-                        <td class="p-3 text-center"><input type="radio" name="att-${s.id}" value="A" ${status === 'A' ? 'checked' : ''} ${disabled} class="w-4 h-4 text-red-600 focus:ring-red-500 cursor-pointer"></td>
-                        <td class="p-3"><input type="text" id="note-${s.id}" value="${note}" ${disabled} placeholder="Ket..." class="border border-gray-300 rounded px-2 py-1 text-xs w-full"></td>
-                    </tr>`;
-            });
-        }
-
-        window.saveAttendance = function() {
-            const dateVal = document.getElementById('attendance-date').value;
-            let attIndex = window.appData.attendance.findIndex(a => a.date === dateVal);
-            // Deep copy atau init baru
-            let attData = attIndex >= 0 ? JSON.parse(JSON.stringify(window.appData.attendance[attIndex])) : { date: dateVal, records: {}, notes: {} };
-
-            window.appData.students.forEach(s => {
-                const radioH = document.querySelector(`input[name="att-${s.id}"][value="H"]`);
-                if (radioH) {
-                     const radios = document.getElementsByName(`att-${s.id}`);
-                     let selectedVal = null;
-                     for (const r of radios) { if (r.checked) { selectedVal = r.value; break; } }
-                     if(selectedVal) attData.records[s.id] = selectedVal;
-                     const noteEl = document.getElementById(`note-${s.id}`);
-                     if(noteEl) attData.notes[s.id] = noteEl.value;
-                }
-            });
-
-            if (attIndex >= 0) window.appData.attendance[attIndex] = attData; else window.appData.attendance.push(attData);
-            window.saveDataToCloud();
-            window.showToast('Absensi Tersimpan ke Cloud!');
-        }
-
-        window.generateReport = function() {
-            const monthVal = document.getElementById('report-month').value;
-            const classFilter = document.getElementById('report-filter-class').value;
-            if(!monthVal) return window.showToast('Pilih bulan dulu');
-            
-            const [year, month] = monthVal.split('-');
-            const daysInMonth = new Date(year, month, 0).getDate();
-            const container = document.getElementById('report-table-container');
-
-            let filteredStudents = window.appData.students;
-            if (classFilter !== 'all') filteredStudents = filteredStudents.filter(s => s.classVal === classFilter);
-            filteredStudents.sort((a, b) => { if (a.classVal !== b.classVal) return a.classVal - b.classVal; return a.name.localeCompare(b.name); });
-
-            if (filteredStudents.length === 0) { container.innerHTML = `<div class="p-8 text-center text-gray-500">Tidak ada data siswa.</div>`; return; }
-
-            let html = `<table class="min-w-full divide-y divide-gray-200 text-xs"><thead class="bg-gray-100"><tr><th class="px-2 py-3 text-left font-bold text-gray-600 sticky left-0 bg-gray-100 z-10 w-40 border-r border-gray-200">Nama (Kelas)</th>`;
-            for(let i=1; i<=daysInMonth; i++) html += `<th class="px-1 py-3 text-center text-gray-500 w-8 border-r border-gray-200">${i}</th>`;
-            html += `<th class="px-2 font-bold bg-green-100">H</th><th class="px-2 font-bold bg-yellow-100">S</th><th class="px-2 font-bold bg-blue-100">I</th><th class="px-2 font-bold bg-red-100">A</th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
-
-            filteredStudents.forEach(s => {
-                let h=0, sk=0, i=0, a=0;
-                html += `<tr><td class="px-2 py-2 font-medium text-gray-900 sticky left-0 bg-white border-r border-gray-200 z-10">${s.name} (${s.classVal})</td>`;
-                for(let day=1; day<=daysInMonth; day++) {
-                    const dateStr = `${year}-${month}-${String(day).padStart(2,'0')}`;
-                    const attRecord = window.appData.attendance.find(r => r.date === dateStr);
-                    const status = attRecord && attRecord.records[s.id] ? attRecord.records[s.id] : '';
-                    if(status === 'H') h++; else if(status === 'S') sk++; else if(status === 'I') i++; else if(status === 'A') a++;
-                    let bg = status==='H'?'bg-green-200':status==='S'?'bg-yellow-200':status==='I'?'bg-blue-200':status==='A'?'bg-red-200':'';
-                    html += `<td class="px-1 py-1 text-center border-r border-gray-100 ${bg}">${status}</td>`;
-                }
-                html += `<td class="text-center bg-green-50 font-bold">${h}</td><td class="text-center bg-yellow-50 font-bold">${sk}</td><td class="text-center bg-blue-50 font-bold">${i}</td><td class="text-center bg-red-50 font-bold">${a}</td></tr>`;
-            });
-            html += `</tbody></table>`;
-            container.innerHTML = html;
-        }
-
-        window.renderAssessmentList = function() {
-            const ul = document.getElementById('assessment-student-list');
-            ul.innerHTML = '';
-            window.appData.students.forEach(s => {
-                const li = document.createElement('li');
-                li.className = "p-3 border border-gray-100 rounded-lg hover:bg-blue-50 cursor-pointer flex items-center justify-between transition group";
-                li.innerHTML = `<div><span class="font-semibold text-sm text-gray-700">${s.name}</span> <span class="text-xs text-gray-400">Kelas ${s.classVal}</span></div>`;
-                li.onclick = () => window.loadAssessmentForm(s);
-                ul.appendChild(li);
-            });
-        }
-        
-        window.loadAssessmentForm = function(student) {
-            currentAssessId = student.id;
-            document.getElementById('assessment-form-placeholder').classList.add('hidden');
-            document.getElementById('assessment-form-real').classList.remove('hidden');
-            document.getElementById('assess-name').innerText = student.name;
-            document.getElementById('assess-class').innerText = "Kelas " + student.classVal;
-            document.getElementById('assess-pos').innerText = student.pos;
-            const photoSrc = student.photo ? student.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random&color=fff`;
-            document.getElementById('assess-photo-preview').style.backgroundImage = `url('${photoSrc}')`;
-
-            const existing = window.appData.assessments.find(a => a.studentId === student.id);
-            const data = existing || { disiplin:50, teamwork:50, respect:50, leadership:50, passing:50, control:50, shooting:50, physique:50, notes:'' };
-            const fields = ['disiplin', 'teamwork', 'respect', 'leadership', 'passing', 'control', 'shooting', 'physique'];
-            fields.forEach(f => {
-                const el = document.getElementById(`score-${f}`);
-                if(el) { el.value = data[f]!==undefined?data[f]:50; document.getElementById(`val-score-${f}`).innerText = el.value; }
-            });
-            document.getElementById('score-notes').value = data.notes || '';
-        }
-
-        window.updateRangeVal = function(input) { document.getElementById(`val-${input.id}`).innerText = input.value; }
-        
-        window.saveAssessment = function() {
-            if(!currentAssessId) return;
-            const fields = ['disiplin', 'teamwork', 'respect', 'leadership', 'passing', 'control', 'shooting', 'physique'];
-            const newData = { studentId: currentAssessId, lastUpdated: new Date().toISOString(), notes: document.getElementById('score-notes').value };
-            fields.forEach(f => newData[f] = document.getElementById(`score-${f}`).value);
-            
-            const idx = window.appData.assessments.findIndex(a => a.studentId === currentAssessId);
-            if(idx >= 0) window.appData.assessments[idx] = newData; else window.appData.assessments.push(newData);
-            window.saveDataToCloud(); 
-            window.showToast('Penilaian Disimpan!');
-        }
-
-        window.filterAssessmentList = function() {
-            const q = document.getElementById('search-assess-student').value.toLowerCase();
-            const lis = document.getElementById('assessment-student-list').children;
-            for(let li of lis) li.style.display = li.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
-        }
-
-        window.renderDashboard = function() {
-            document.getElementById('dash-total-students').innerText = window.appData.students.length;
-            const totalH = window.appData.students.reduce((acc, s) => acc + parseFloat(s.height || 0), 0);
-            document.getElementById('dash-avg-height').innerText = window.appData.students.length ? (totalH / window.appData.students.length).toFixed(1) : 0;
-            const yearMonth = new Date().toISOString().slice(0, 7);
-            let pCount = 0, tSlots = 0, actCount = 0;
-            window.appData.attendance.forEach(a => { if(a.date.startsWith(yearMonth)) { actCount++; const recs = Object.values(a.records); tSlots += recs.length; pCount += recs.filter(s => s === 'H').length; } });
-            document.getElementById('dash-activity-count').innerText = actCount;
-            document.getElementById('dash-attendance-rate').innerText = tSlots ? Math.round((pCount / tSlots) * 100) + "%" : "0%";
-
-            const ctxAtt = document.getElementById('attendanceChart').getContext('2d');
-            if(attChart) attChart.destroy();
-            const sortedAtt = [...window.appData.attendance].sort((a,b) => new Date(a.date) - new Date(b.date)).slice(-7);
-            attChart = new Chart(ctxAtt, { type: 'line', data: { labels: sortedAtt.map(a => { const d=new Date(a.date); return `${d.getDate()}/${d.getMonth()+1}`; }), datasets: [{ label: 'Kehadiran (%)', data: sortedAtt.map(a => { const recs=Object.values(a.records); return recs.length?Math.round((recs.filter(r=>r==='H').length/recs.length)*100):0; }), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false } });
-
-            const ctxSkill = document.getElementById('skillsChart').getContext('2d');
-            if(skillChart) skillChart.destroy();
-            skillChart = new Chart(ctxSkill, { type: 'radar', data: { labels: ['Disiplin', 'Tim', 'Respek', 'Pass', 'Ctrl', 'Shoot', 'Fisik'], datasets: [{ label: 'Tim', data: [80, 75, 85, 60, 65, 55, 70], backgroundColor: 'rgba(37, 99, 235, 0.2)', borderColor: '#2563eb', pointBackgroundColor: '#1e40af' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100 } } } });
-        }
-
-        window.backupData = function() {
-            // Backup JSON lokal (dari state memory)
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.appData));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "BACKUP_SMEBOLA_" + new Date().toISOString().slice(0,10) + ".json");
-            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
-        }
-        
-        // Export Excel Utils
-        window.downloadTemplate = function() { const ws = XLSX.utils.aoa_to_sheet([["Nama Lengkap","Kelas","Posisi","No Punggung","Tinggi","Berat"],["Contoh Siswa","5","FW","10","145","35"]]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template"); XLSX.writeFile(wb, "Template_SMEBola.xlsx"); }
-        window.handleImportExcel = function(input) {
-            const file = input.files[0]; const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, {type: 'array'});
-                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-                let count = 0;
-                for(let i=1; i<json.length; i++) {
-                    const row = json[i];
-                    if(row[0]) { window.appData.students.push({ id: Date.now() + i, name: row[0], classVal: row[1] || '1', pos: row[2] || 'MF', num: row[3] || 0, height: row[4] || 0, weight: row[5] || 0, photo: null }); count++; }
-                }
-                window.saveDataToCloud(); window.showToast(`Berhasil import ${count} siswa!`); input.value='';
-            }; reader.readAsArrayBuffer(file);
-        }
-        window.exportReportToExcel = function() {
-            const monthVal = document.getElementById('report-month').value; const classFilter = document.getElementById('report-filter-class').value;
-            if(!monthVal) return window.showToast('Generate laporan dulu!');
-            const table = document.querySelector('#report-table-container table');
-            if(!table) return window.showToast('Tampilkan laporan terlebih dahulu!');
-            const filterText = classFilter === 'all' ? 'Semua_Kelas' : 'Kelas_' + classFilter;
-            const wb = XLSX.utils.table_to_book(table, {sheet: "Laporan"}); XLSX.writeFile(wb, `Laporan_SMEBola_${monthVal}_${filterText}.xlsx`);
-        }
-        window.exportAssessmentToExcel = function() {
-            const data = []; data.push(["Nama", "Kelas", "Posisi", "Disiplin", "Teamwork", "Respek", "Leadership", "Passing", "Control", "Shooting", "Fisik", "Catatan"]);
-            window.appData.students.forEach(s => {
-                const scores = window.appData.assessments.find(a => a.studentId === s.id) || {};
-                data.push([s.name, s.classVal, s.pos, scores.disiplin || '-', scores.teamwork || '-', scores.respect || '-', scores.leadership || '-', scores.passing || '-', scores.control || '-', scores.shooting || '-', scores.physique || '-', scores.notes || '-']);
-            });
-            const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Rekap Penilaian"); XLSX.writeFile(wb, "Rekap_Penilaian_SMEBola.xlsx");
-        }
-
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
